@@ -5,7 +5,8 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     && docker-php-ext-install pdo pdo_mysql mysqli \
-    && a2enmod rewrite
+    && a2dismod mpm_event mpm_worker || true \
+    && a2enmod mpm_prefork rewrite
 
 WORKDIR /var/www/html
 
