@@ -57,11 +57,11 @@ class Conexion {
 
         if(self::$link === null){
 
-            $host = "nozomi.proxy.rlwy.net";
-            $port = "53643";
-            $db   = "railway";
-            $user = "root";
-            $pass = "uqmawpMSNtSUStmjxwduuIrPYJWTCpgI";
+            $host = getenv("MYSQLHOST") ?: "localhost";
+            $port = getenv("MYSQLPORT") ?: "3306";
+            $db   = getenv("MYSQLDATABASE") ?: "pos";
+            $user = getenv("MYSQLUSER") ?: "root";
+            $pass = getenv("MYSQLPASSWORD") ?: "";
 
             self::$link = new PDO(
                 "mysql:host=".$host.";port=".$port.";dbname=".$db.";charset=utf8mb4",
