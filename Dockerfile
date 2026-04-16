@@ -6,7 +6,11 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && docker-php-ext-install mysqli pdo pdo_mysql
 
-RUN a2dismod mpm_event mpm_worker || true
+# Limpiar cualquier MPM ya cargado
+RUN rm -f /etc/apache2/mods-enabled/mpm_*.load \
+    /etc/apache2/mods-enabled/mpm_*.conf
+
+# Activar solo prefork + rewrite
 RUN a2enmod mpm_prefork
 RUN a2enmod rewrite
 
