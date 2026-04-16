@@ -1,17 +1,16 @@
 FROM php:8.2-apache
 
-RUN apt-get update && apt-get install -y \
-    libzip-dev \
-    zip \
-    unzip \
-    && docker-php-ext-install pdo pdo_mysql mysqli \
-    && a2dismod mpm_event mpm_worker || true \
-    && a2enmod mpm_prefork rewrite
+# Activar mod_rewrite
+RUN a2enmod rewrite
 
-WORKDIR /var/www/html
+# Desactivar mpm_event y activar prefork
+RUN a2dismod mpm_event && a2enmod mpm_prefork
 
+# Instalar extensiones necesarias
+RUN docker-php-ext-install mysqli pdo pdo_mysql
+
+# Copiar archivos
 COPY . /var/www/html/
 
+# Permisos
 RUN chown -R www-data:www-data /var/www/html
-
-EXPOSE 80
