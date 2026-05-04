@@ -92,187 +92,137 @@ static public function ctrIngresoUsuario(){
 }
 	
 
-		
+		static public function ctrCrearUsuario(){
 
+	if(isset($_POST["nuevoUsuario"])){
 
-	/*=============================================
-	REGISTRO DE USUARIO
-	=============================================*/
+		if(
+			preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ ]+$/', $_POST["nuevoNombre"]) &&
+			preg_match('/^[a-zA-Z0-9._-]+$/', $_POST["nuevoUsuario"]) &&
+			preg_match('/^[a-zA-Z0-9]+$/', $_POST["nuevoPassword"])
+		){
 
-	static public function ctrCrearUsuario(){
+			$ruta = "";
 
-		if(isset($_POST["nuevoUsuario"])){
+			if(isset($_FILES["nuevaFoto"]["tmp_name"]) && !empty($_FILES["nuevaFoto"]["tmp_name"])){
 
-			if(preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ ]+$/', $_POST["nuevoNombre"]) &&
-			   preg_match('/^[a-zA-Z0-9._-]+$/', $_POST["nuevoUsuario"]) &&
-			   preg_match('/^[a-zA-Z0-9]+$/', $_POST["nuevoPassword"])){
+				$directorio = "vistas/img/usuarios/".$_POST["nuevoUsuario"];
 
-			   	/*=============================================
-				VALIDAR IMAGEN
-				=============================================*/
-
-				$ruta = "";
-
-				if(isset($_FILES["nuevaFoto"]["tmp_name"]) && !empty($_FILES["nuevaFoto"]["tmp_name"])){
-
-					list($ancho, $alto) = getimagesize($_FILES["nuevaFoto"]["tmp_name"]);
-
-					$nuevoAncho = 500;
-					$nuevoAlto = 500;
-
-					/*=============================================
-					CREAMOS EL DIRECTORIO DONDE VAMOS A GUARDAR LA FOTO DEL USUARIO
-					=============================================*/
-
-					$directorio = "vistas/img/usuarios/".$_POST["nuevoUsuario"];
-
-					mkdir($directorio, 0755);
-
-					/*=============================================
-					DE ACUERDO AL TIPO DE IMAGEN APLICAMOS LAS FUNCIONES POR DEFECTO DE PHP
-					=============================================*/
-
-					if($_FILES["nuevaFoto"]["type"] == "image/jpeg"){
-
-						/*=============================================
-						GUARDAMOS LA IMAGEN EN EL DIRECTORIO
-						=============================================*/
-
-						$aleatorio = mt_rand(100,999);
-
-						$ruta = "vistas/img/usuarios/".$_POST["nuevoUsuario"]."/".$aleatorio.".jpg";
-
-						$origen = imagecreatefromjpeg($_FILES["nuevaFoto"]["tmp_name"]);						
-
-						$destino = imagecreatetruecolor($nuevoAncho, $nuevoAlto);
-
-						imagecopyresized($destino, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $ancho, $alto);
-
-						imagejpeg($destino, $ruta);
-
-					}
-
-					if($_FILES["nuevaFoto"]["type"] == "image/png"){
-
-						/*=============================================
-						GUARDAMOS LA IMAGEN EN EL DIRECTORIO
-						=============================================*/
-
-						$aleatorio = mt_rand(100,999);
-
-						$ruta = "vistas/img/usuarios/".$_POST["nuevoUsuario"]."/".$aleatorio.".png";
-
-						$origen = imagecreatefrompng($_FILES["nuevaFoto"]["tmp_name"]);						
-
-						$destino = imagecreatetruecolor($nuevoAncho, $nuevoAlto);
-
-						imagecopyresized($destino, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $ancho, $alto);
-
-						imagepng($destino, $ruta);
-
-					}
-
+				if(!is_dir($directorio)){
+					mkdir($directorio, 0755, true);
 				}
 
-				$tabla = "usuarios";
+				list($ancho, $alto) = getimagesize($_FILES["nuevaFoto"]["tmp_name"]);
 
-$usuarioExistente = ModeloUsuarios::mdlMostrarUsuarios($tabla, "usuario", $_POST["nuevoUsuario"]);
+				$nuevoAncho = 500;
+				$nuevoAlto = 500;
 
-if($usuarioExistente){
+				if($_FILES["nuevaFoto"]["type"] == "image/jpeg"){
 
-	echo '<script>
-		swal({
-			type: "error",
-			title: "¡El usuario ya existe!",
-			showConfirmButton: true,
-			confirmButtonText: "Cerrar"
-		}).then(function(result){
-			if(result.value){
-				window.location = "usuarios";
-			}
-		});
-	</script>';
+					$aleatorio = mt_rand(100,999);
+					$ruta = $directorio."/".$aleatorio.".jpg";
 
-	return;
-}
+					$origen = imagecreatefromjpeg($_FILES["nuevaFoto"]["tmp_name"]);
+					$destino = imagecreatetruecolor($nuevoAncho, $nuevoAlto);
 
-$idSucursal = null;
-
-if($_POST["nuevoPerfil"] != "Administrador"){
-
-	if(empty($_POST["nuevoIdSucursal"])){
-
-		echo '<script>
-			swal({
-				type: "error",
-				title: "¡Debe seleccionar una sucursal!",
-				showConfirmButton: true,
-				confirmButtonText: "Cerrar"
-			}).then(function(result){
-				if(result.value){
-					window.location = "usuarios";
+					imagecopyresized($destino, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $ancho, $alto);
+					imagejpeg($destino, $ruta);
 				}
-			});
-		</script>';
 
-		return;
-	}
+				if($_FILES["nuevaFoto"]["type"] == "image/png"){
 
-	$idSucursal = (int) $_POST["nuevoIdSucursal"];
-}
+					$aleatorio = mt_rand(100,999);
+					$ruta = $directorio."/".$aleatorio.".png";
 
-$encriptar = app_hash_password($_POST["nuevoPassword"]);
+					$origen = imagecreatefrompng($_FILES["nuevaFoto"]["tmp_name"]);
+					$destino = imagecreatetruecolor($nuevoAncho, $nuevoAlto);
 
-$datos = array(
-	"nombre" => $_POST["nuevoNombre"],
-	"usuario" => $_POST["nuevoUsuario"],
-	"password" => $encriptar,
-	"perfil" => $_POST["nuevoPerfil"],
-	"id_sucursal" => $idSucursal,
-	"foto" => $ruta
-);
-
-
-$respuesta = ModeloUsuarios::mdlIngresarUsuario($tabla, $datos);
-
-if($respuesta == "ok"){
-
-	echo '<script>
-		swal({
-			type: "success",
-			title: "¡El usuario ha sido guardado correctamente!",
-			showConfirmButton: true,
-			confirmButtonText: "Cerrar"
-		}).then(function(result){
-			if(result.value){
-				window.location = "usuarios";
+					imagecopyresized($destino, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $ancho, $alto);
+					imagepng($destino, $ruta);
+				}
 			}
-		});
-	</script>';
 
-}else{
+			$tabla = "usuarios";
 
-	echo '<script>
-		swal({
-			type: "error",
-			title: "No se pudo guardar el usuario",
-			text: "Revise que el usuario no exista y que todos los campos estén correctos.",
-			showConfirmButton: true,
-			confirmButtonText: "Cerrar"
-		}).then(function(result){
-			if(result.value){
-				window.location = "usuarios";
+			$usuarioExistente = ModeloUsuarios::mdlMostrarUsuarios($tabla, "usuario", $_POST["nuevoUsuario"]);
+
+			if($usuarioExistente){
+
+				echo '<script>
+					swal({
+						type: "error",
+						title: "¡El usuario ya existe!",
+						showConfirmButton: true,
+						confirmButtonText: "Cerrar"
+					}).then(function(result){
+						if(result.value){
+							window.location = "usuarios";
+						}
+					});
+				</script>';
+
+				return;
 			}
-		});
-	</script>';
 
-}
+			$idSucursal = null;
+
+			if($_POST["nuevoPerfil"] != "Administrador"){
+
+				if(empty($_POST["nuevoIdSucursal"])){
+
+					echo '<script>
+						swal({
+							type: "error",
+							title: "¡Debe seleccionar una sucursal!",
+							showConfirmButton: true,
+							confirmButtonText: "Cerrar"
+						}).then(function(result){
+							if(result.value){
+								window.location = "usuarios";
+							}
+						});
+					</script>';
+
+					return;
+				}
+
+				$idSucursal = (int) $_POST["nuevoIdSucursal"];
+			}
+
+			$encriptar = app_hash_password($_POST["nuevoPassword"]);
+
+			$datos = array(
+				"nombre" => $_POST["nuevoNombre"],
+				"usuario" => $_POST["nuevoUsuario"],
+				"password" => $encriptar,
+				"perfil" => $_POST["nuevoPerfil"],
+				"id_sucursal" => $idSucursal,
+				"foto" => $ruta
+			);
+
+			$respuesta = ModeloUsuarios::mdlIngresarUsuario($tabla, $datos);
+
+			if($respuesta == "ok"){
+
+				echo '<script>
+					swal({
+						type: "success",
+						title: "¡El usuario ha sido guardado correctamente!",
+						showConfirmButton: true,
+						confirmButtonText: "Cerrar"
+					}).then(function(result){
+						if(result.value){
+							window.location = "usuarios";
+						}
+					});
+				</script>';
+
 			}else{
 
 				echo '<script>
 					swal({
 						type: "error",
-						title: "¡El usuario no puede ir vacío o llevar caracteres especiales!",
+						title: "No se pudo guardar el usuario",
 						showConfirmButton: true,
 						confirmButtonText: "Cerrar"
 					}).then(function(result){
@@ -283,10 +233,29 @@ if($respuesta == "ok"){
 				</script>';
 			}
 
-		}
+		}else{
 
+			echo '<script>
+				swal({
+					type: "error",
+					title: "¡El usuario no puede ir vacío o llevar caracteres especiales!",
+					showConfirmButton: true,
+					confirmButtonText: "Cerrar"
+				}).then(function(result){
+					if(result.value){
+						window.location = "usuarios";
+					}
+				});
+			</script>';
+		}
 	}
-			
+}
+
+
+	/*=============================================
+	REGISTRO DE USUARIO
+	=============================================*/
+
 
 	/*=============================================
 	MOSTRAR USUARIO
