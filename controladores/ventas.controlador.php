@@ -653,140 +653,112 @@ if($metodoPago === "Credito" && (!isset($_POST["nuevaFechaVencimiento"]) || trim
 	=============================================*/
 	static public function ctrEliminarVenta(){
 
-		if(isset($_GET["idVenta"])){
+	if(isset($_GET["idVenta"])){
 
-			$tablaClientes = "clientes";
-$traerVentas = ModeloVentas::mdlMostrarVentas($tabla, null, null);
+		$tabla = "ventas";
+		$idVenta = (int) $_GET["idVenta"];
 
-$guardarFechas = array();
-$idSucursalVenta = isset($traerVenta["id_sucursal"]) ? (int)$traerVenta["id_sucursal"] : 0;
+		$traerVenta = ModeloVentas::mdlMostrarVentas($tabla, "id", $idVenta);
 
-if(is_array($traerVentas)){
-	foreach ($traerVentas as $value) {
+		if(!$traerVenta || !is_array($traerVenta)){
 
-		if(!is_array($value)){
-			continue;
-		}
-
-		if(!isset($value["id_cliente"]) || !isset($value["fecha"])){
-			continue;
-		}
-
-		if((int)$value["id_cliente"] !== (int)$traerVenta["id_cliente"]){
-			continue;
-		}
-
-		if(isset($value["id"]) && (int)$value["id"] === (int)$traerVenta["id"]){
-			continue;
-		}
-
-		if(isset($value["estado"]) && (int)$value["estado"] === 0){
-			continue;
-		}
-
-		if($idSucursalVenta > 0){
-			if(!isset($value["id_sucursal"]) || (int)$value["id_sucursal"] !== $idSucursalVenta){
-				continue;
-			}
-		}
-
-		$guardarFechas[] = $value["fecha"];
-	}
-}
-
-sort($guardarFechas);
-
-			if(count($guardarFechas) > 0){
-
-	$item = "ultima_compra";
-	$valor = $guardarFechas[count($guardarFechas)-1];
-	$valorIdCliente = $traerVenta["id_cliente"];
-	ModeloClientes::mdlActualizarCliente($tablaClientes, $item, $valor, $valorIdCliente);
-
-}else{
-
-	$item = "ultima_compra";
-	$valor = "0000-00-00 00:00:00";
-	$valorIdCliente = $traerVenta["id_cliente"];
-	ModeloClientes::mdlActualizarCliente($tablaClientes, $item, $valor, $valorIdCliente);
-}
-
-			$productos = json_decode($traerVenta["productos"], true);
-			$totalProductosComprados = array();
-
-			if(is_array($productos)){
-				foreach ($productos as $value) {
-
-					if(!is_array($value) || !isset($value["cantidad"]) || !isset($value["id"])){
-						continue;
+			echo '<script>
+				swal({
+					type: "error",
+					title: "La venta no existe o ya fue eliminada",
+					showConfirmButton: true,
+					confirmButtonText: "Cerrar"
+				}).then(function(result){
+					if(result.value){
+						window.location = "ventas";
 					}
+				});
+			</script>';
 
-					$totalProductosComprados[] = (float)$value["cantidad"];
+			return;
+		}
 
-					$tablaProductos = "productos";
-					$item = "id";
-					$valor = (int)$value["id"];
-					$orden = "id";
+		$productos = json_decode($traerVenta["productos"], true);
 
-					$traerProducto = ModeloProductos::mdlMostrarProductos($tablaProductos, $item, $valor, $orden);
+		if(is_array($productos)){
 
-					if(is_array($traerProducto)){
+			foreach($productos as $value){
 
-						$stockSucursal = ModeloProductos::mdlObtenerStockSucursal($valor, $idSucursalVenta);
+				if(!isset($value["id"]) || !isset($value["cantidad"])){
+					continue;
+				}
 
-						if($stockSucursal){
-							$stockActual = isset($stockSucursal["stock"]) ? (float)$stockSucursal["stock"] : 0;
-							$valor1b = (float)$value["cantidad"] + $stockActual;
-							ModeloProductos::mdlActualizarStockSucursal($valor, $idSucursalVenta, $valor1b);
-						}
+				$item = "id";
+				$valor = $value["id"];
+				$orden = "id";
 
-						$ventasActuales = isset($traerProducto["ventas"]) ? (float)$traerProducto["ventas"] : 0;
-						$nuevasVentas = $ventasActuales - (float)$value["cantidad"];
+				$traerProducto = ModeloProductos::mdlMostrarProductos("productos", $item, $valor, $orden);
 
-						if($nuevasVentas < 0){
-							$nuevasVentas = 0;
-						}
+				if(is_array($traerProducto)){
 
-						ModeloProductos::mdlActualizarProducto($tablaProductos, "ventas", $nuevasVentas, $valor);
-					}
+					$item1a = "ventas";
+					$valor1a = max(0, $traerProducto["ventas"] - $value["cantidad"]);
+
+					ModeloProductos::mdlActualizarProducto("productos", $item1a, $valor1a, $valor);
+
+					$item1b = "stock";
+					$valor1b = $traerProducto["stock"] + $value["cantidad"];
+
+					ModeloProductos::mdlActualizarProducto("productos", $item1b, $valor1b, $valor);
 				}
 			}
+		}
 
+		if(isset($traerVenta["id_cliente"])){
+
+			$itemCliente = "id";
 			$valorCliente = $traerVenta["id_cliente"];
-			$traerCliente = ModeloClientes::mdlMostrarClientes($tablaClientes, "id", $valorCliente);
+
+			$traerCliente = ModeloClientes::mdlMostrarClientes("clientes", $itemCliente, $valorCliente);
 
 			if(is_array($traerCliente)){
 
-				$comprasActuales = isset($traerCliente["compras"]) ? (float)$traerCliente["compras"] : 0;
-				$valor1a = $comprasActuales - array_sum($totalProductosComprados);
+				$item1 = "compras";
+				$valor1 = max(0, $traerCliente["compras"] - 1);
 
-				if($valor1a < 0){
-					$valor1a = 0;
-				}
-
-				ModeloClientes::mdlActualizarCliente($tablaClientes, "compras", $valor1a, $valorCliente);
-			}
-
-			$respuesta = ModeloVentas::mdlEliminarVenta($tabla, $idVenta);
-
-			if($respuesta == "ok"){
-
-				echo '<script>
-					swal({
-						type: "success",
-						title: "La venta ha sido borrada correctamente",
-						showConfirmButton: true,
-						confirmButtonText: "Cerrar"
-					}).then(function(result){
-						if (result.value) {
-							window.location = "ventas";
-						}
-					});
-				</script>';
+				ModeloClientes::mdlActualizarCliente("clientes", $item1, $valor1, $valorCliente);
 			}
 		}
-	}
 
+		$respuesta = ModeloVentas::mdlEliminarVenta($tabla, $idVenta);
+
+		if($respuesta == "ok"){
+
+			echo '<script>
+				swal({
+					type: "success",
+					title: "La venta ha sido borrada correctamente",
+					showConfirmButton: true,
+					confirmButtonText: "Cerrar"
+				}).then(function(result){
+					if(result.value){
+						window.location = "ventas";
+					}
+				});
+			</script>';
+
+		}else{
+
+			echo '<script>
+				swal({
+					type: "error",
+					title: "No se pudo borrar la venta",
+					showConfirmButton: true,
+					confirmButtonText: "Cerrar"
+				}).then(function(result){
+					if(result.value){
+						window.location = "ventas";
+					}
+				});
+			</script>';
+		}
+	}
+}
 	/*=============================================
 RANGO FECHAS
 =============================================*/
