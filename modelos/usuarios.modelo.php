@@ -4,14 +4,11 @@ require_once "conexion.php";
 
 class ModeloUsuarios{
 
-	/*=============================================
-	MOSTRAR USUARIOS
-	=============================================*/
 	static public function mdlMostrarUsuarios($tabla, $item, $valor){
 
 		if($item != null){
 
-			$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE $item = :$item");
+			$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE $item = :$item LIMIT 1");
 			$stmt->bindParam(":".$item, $valor, PDO::PARAM_STR);
 			$stmt->execute();
 
@@ -19,16 +16,13 @@ class ModeloUsuarios{
 
 		}else{
 
-			$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla");
+			$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla ORDER BY id ASC");
 			$stmt->execute();
 
 			return $stmt->fetchAll(PDO::FETCH_ASSOC);
 		}
 	}
 
-	/*=============================================
-	REGISTRO DE USUARIO
-	=============================================*/
 	static public function mdlIngresarUsuario($tabla, $datos){
 
 		$stmt = Conexion::conectar()->prepare("
@@ -40,15 +34,18 @@ class ModeloUsuarios{
 		$stmt->bindParam(":usuario", $datos["usuario"], PDO::PARAM_STR);
 		$stmt->bindParam(":password", $datos["password"], PDO::PARAM_STR);
 		$stmt->bindParam(":perfil", $datos["perfil"], PDO::PARAM_STR);
-		$stmt->bindParam(":id_sucursal", $datos["id_sucursal"], PDO::PARAM_INT);
+
+		if($datos["id_sucursal"] === null){
+			$stmt->bindValue(":id_sucursal", null, PDO::PARAM_NULL);
+		}else{
+			$stmt->bindValue(":id_sucursal", $datos["id_sucursal"], PDO::PARAM_INT);
+		}
+
 		$stmt->bindParam(":foto", $datos["foto"], PDO::PARAM_STR);
 
 		return $stmt->execute() ? "ok" : "error";
 	}
 
-	/*=============================================
-	EDITAR USUARIO
-	=============================================*/
 	static public function mdlEditarUsuario($tabla, $datos){
 	
 		$stmt = Conexion::conectar()->prepare("
@@ -64,16 +61,19 @@ class ModeloUsuarios{
 		$stmt->bindParam(":nombre", $datos["nombre"], PDO::PARAM_STR);
 		$stmt->bindParam(":password", $datos["password"], PDO::PARAM_STR);
 		$stmt->bindParam(":perfil", $datos["perfil"], PDO::PARAM_STR);
-		$stmt->bindParam(":id_sucursal", $datos["id_sucursal"], PDO::PARAM_INT);
+
+		if($datos["id_sucursal"] === null){
+			$stmt->bindValue(":id_sucursal", null, PDO::PARAM_NULL);
+		}else{
+			$stmt->bindValue(":id_sucursal", $datos["id_sucursal"], PDO::PARAM_INT);
+		}
+
 		$stmt->bindParam(":foto", $datos["foto"], PDO::PARAM_STR);
 		$stmt->bindParam(":usuario", $datos["usuario"], PDO::PARAM_STR);
 
 		return $stmt->execute() ? "ok" : "error";
 	}
 
-	/*=============================================
-	ACTUALIZAR USUARIO
-	=============================================*/
 	static public function mdlActualizarUsuario($tabla, $item1, $valor1, $item2, $valor2){
 
 		$stmt = Conexion::conectar()->prepare("UPDATE $tabla SET $item1 = :$item1 WHERE $item2 = :$item2");
@@ -84,9 +84,6 @@ class ModeloUsuarios{
 		return $stmt->execute() ? "ok" : "error";
 	}
 
-	/*=============================================
-	ACTUALIZAR PASSWORD
-	=============================================*/
 	static public function mdlActualizarPassword($tabla, $idUsuario, $nuevoHash){
 
 		$stmt = Conexion::conectar()->prepare("UPDATE $tabla SET password = :password WHERE id = :id");
@@ -97,9 +94,6 @@ class ModeloUsuarios{
 		return $stmt->execute() ? "ok" : "error";
 	}
 
-	/*=============================================
-	BORRAR USUARIO
-	=============================================*/
 	static public function mdlBorrarUsuario($tabla, $datos){
 
 		$stmt = Conexion::conectar()->prepare("DELETE FROM $tabla WHERE id = :id");
