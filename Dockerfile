@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
 RUN apt-get update && apt-get install -y \
     libzip-dev \
@@ -6,14 +6,10 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && docker-php-ext-install mysqli pdo pdo_mysql
 
-# Limpiar cualquier MPM ya cargado
-RUN rm -f /etc/apache2/mods-enabled/mpm_*.load \
-    /etc/apache2/mods-enabled/mpm_*.conf
+WORKDIR /app
 
-# Activar solo prefork + rewrite
-RUN a2enmod mpm_prefork
-RUN a2enmod rewrite
+COPY . /app
 
-COPY . /var/www/html/
+EXPOSE 8080
 
-RUN chown -R www-data:www-data /var/www/html
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-8080} router.php"]
