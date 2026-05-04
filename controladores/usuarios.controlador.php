@@ -204,34 +204,35 @@ static public function ctrIngresoUsuario(){
 
 			if($respuesta == "ok"){
 
-				echo '<script>
-					swal({
-						type: "success",
-						title: "¡El usuario ha sido guardado correctamente!",
-						showConfirmButton: true,
-						confirmButtonText: "Cerrar"
-					}).then(function(result){
-						if(result.value){
-							window.location = "usuarios";
-						}
-					});
-				</script>';
+	echo '<script>
+		swal({
+			type: "success",
+			title: "¡El usuario ha sido guardado correctamente!",
+			showConfirmButton: true,
+			confirmButtonText: "Cerrar"
+		});
 
-			}else{
+		setTimeout(function(){
+			window.location = "usuarios";
+		}, 1000);
+	</script>';
 
-				echo '<script>
-					swal({
-						type: "error",
-						title: "No se pudo guardar el usuario",
-						showConfirmButton: true,
-						confirmButtonText: "Cerrar"
-					}).then(function(result){
-						if(result.value){
-							window.location = "usuarios";
-						}
-					});
-				</script>';
-			}
+}else{
+
+					echo '<script>
+		swal({
+			type: "error",
+			title: "No se pudo guardar el usuario",
+			showConfirmButton: true,
+			confirmButtonText: "Cerrar"
+		});
+
+		setTimeout(function(){
+			window.location = "usuarios";
+		}, 1000);
+	</script>';
+
+}
 
 		}else{
 
