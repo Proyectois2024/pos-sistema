@@ -176,16 +176,63 @@ static public function ctrIngresoUsuario(){
 
 				$tabla = "usuarios";
 
-				$encriptar = app_hash_password($_POST["nuevoPassword"]);
+$usuarioExistente = ModeloUsuarios::mdlMostrarUsuarios($tabla, "usuario", $_POST["nuevoUsuario"]);
 
-				$datos = array("nombre" => $_POST["nuevoNombre"],
-					           "usuario" => $_POST["nuevoUsuario"],
-					           "password" => $encriptar,
-					           "perfil" => $_POST["nuevoPerfil"],
-					           "id_sucursal" => $_POST["nuevoIdSucursal"],
-					           "foto"=>$ruta);
+if($usuarioExistente){
 
-				$respuesta = ModeloUsuarios::mdlIngresarUsuario($tabla, $datos);
+	echo '<script>
+		swal({
+			type: "error",
+			title: "¡El usuario ya existe!",
+			showConfirmButton: true,
+			confirmButtonText: "Cerrar"
+		}).then(function(result){
+			if(result.value){
+				window.location = "usuarios";
+			}
+		});
+	</script>';
+
+	return;
+}
+
+$idSucursal = null;
+
+if($_POST["nuevoPerfil"] != "Administrador"){
+
+	if(empty($_POST["nuevoIdSucursal"])){
+
+		echo '<script>
+			swal({
+				type: "error",
+				title: "¡Debe seleccionar una sucursal!",
+				showConfirmButton: true,
+				confirmButtonText: "Cerrar"
+			}).then(function(result){
+				if(result.value){
+					window.location = "usuarios";
+				}
+			});
+		</script>';
+
+		return;
+	}
+
+	$idSucursal = (int) $_POST["nuevoIdSucursal"];
+}
+
+$encriptar = app_hash_password($_POST["nuevoPassword"]);
+
+$datos = array(
+	"nombre" => $_POST["nuevoNombre"],
+	"usuario" => $_POST["nuevoUsuario"],
+	"password" => $encriptar,
+	"perfil" => $_POST["nuevoPerfil"],
+	"id_sucursal" => $idSucursal,
+	"foto" => $ruta
+);
+
+$respuesta = ModeloUsuarios::mdlIngresarUsuario($tabla, $datos);
 			
 				if($respuesta == "ok"){
 
@@ -386,12 +433,37 @@ static public function ctrIngresoUsuario(){
 
 				}
 
-				$datos = array(
+	$idSucursal = null;
+
+if($_POST["editarPerfil"] != "Administrador"){
+
+	if(empty($_POST["editarIdSucursal"])){
+
+		echo '<script>
+			swal({
+				type: "error",
+				title: "¡Debe seleccionar una sucursal!",
+				showConfirmButton: true,
+				confirmButtonText: "Cerrar"
+			}).then(function(result){
+				if(result.value){
+					window.location = "usuarios";
+				}
+			});
+		</script>';
+
+		return;
+	}
+
+	$idSucursal = (int) $_POST["editarIdSucursal"];
+}
+
+$datos = array(
 	"nombre" => $_POST["editarNombre"],
 	"usuario" => $_POST["editarUsuario"],
 	"password" => $encriptar,
 	"perfil" => $_POST["editarPerfil"],
-	"id_sucursal" => isset($_POST["editarIdSucursal"]) ? (int)$_POST["editarIdSucursal"] : 0,
+	"id_sucursal" => $idSucursal,
 	"foto" => $ruta
 );
 
