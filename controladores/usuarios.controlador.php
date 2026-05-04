@@ -104,7 +104,7 @@ static public function ctrIngresoUsuario(){
 		if(isset($_POST["nuevoUsuario"])){
 
 			if(preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ ]+$/', $_POST["nuevoNombre"]) &&
-			   preg_match('/^[a-zA-Z0-9]+$/', $_POST["nuevoUsuario"]) &&
+			   preg_match('/^[a-zA-Z0-9._-]+$/', $_POST["nuevoUsuario"]) &&
 			   preg_match('/^[a-zA-Z0-9]+$/', $_POST["nuevoPassword"])){
 
 			   	/*=============================================
@@ -113,7 +113,7 @@ static public function ctrIngresoUsuario(){
 
 				$ruta = "";
 
-				if(isset($_FILES["nuevaFoto"]["tmp_name"])){
+				if(isset($_FILES["nuevaFoto"]["tmp_name"]) && !empty($_FILES["nuevaFoto"]["tmp_name"])){
 
 					list($ancho, $alto) = getimagesize($_FILES["nuevaFoto"]["tmp_name"]);
 
@@ -232,67 +232,61 @@ $datos = array(
 	"foto" => $ruta
 );
 
+
 $respuesta = ModeloUsuarios::mdlIngresarUsuario($tabla, $datos);
-			
-				if($respuesta == "ok"){
 
-					echo '<script>
+if($respuesta == "ok"){
 
-					swal({
+	echo '<script>
+		swal({
+			type: "success",
+			title: "¡El usuario ha sido guardado correctamente!",
+			showConfirmButton: true,
+			confirmButtonText: "Cerrar"
+		}).then(function(result){
+			if(result.value){
+				window.location = "usuarios";
+			}
+		});
+	</script>';
 
-						type: "success",
-						title: "¡El usuario ha sido guardado correctamente!",
-						showConfirmButton: true,
-						confirmButtonText: "Cerrar"
+}else{
 
-					}).then(function(result){
+	echo '<script>
+		swal({
+			type: "error",
+			title: "No se pudo guardar el usuario",
+			text: "Revise que el usuario no exista y que todos los campos estén correctos.",
+			showConfirmButton: true,
+			confirmButtonText: "Cerrar"
+		}).then(function(result){
+			if(result.value){
+				window.location = "usuarios";
+			}
+		});
+	</script>';
 
-						if(result.value){
-						
-							window.location = "usuarios";
-
-						}
-
-					});
-				
-
-					</script>';
-
-
-				}	
-
-
+}
 			}else{
 
 				echo '<script>
-
 					swal({
-
 						type: "error",
 						title: "¡El usuario no puede ir vacío o llevar caracteres especiales!",
 						showConfirmButton: true,
 						confirmButtonText: "Cerrar"
-
 					}).then(function(result){
-
 						if(result.value){
-						
 							window.location = "usuarios";
-
 						}
-
 					});
-				
-
 				</script>';
-
 			}
-
 
 		}
 
-
 	}
+			
 
 	/*=============================================
 	MOSTRAR USUARIO
