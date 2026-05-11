@@ -6,13 +6,18 @@ require_once "modelos/proveedores.modelo.php";
 require_once "modelos/productos.modelo.php";
 require_once "modelos/compras.modelo.php";
 
-if (!isset($_GET["idProveedor"])) {
+if (!isset($_GET["idProveedor"]) || empty($_GET["idProveedor"])) {
   echo '<script>window.location = "proveedores";</script>';
   return;
 }
 
-$idProveedor = $_GET["idProveedor"];
+$idProveedor = (int) $_GET["idProveedor"];
 $proveedor = ControladorProveedores::ctrMostrarProveedores("id", $idProveedor);
+
+if (!$proveedor || !isset($proveedor["id"])) {
+  echo '<script>window.location = "proveedores";</script>';
+  return;
+}
 ?>
 
 <div class="content-wrapper">
@@ -44,7 +49,7 @@ $proveedor = ControladorProveedores::ctrMostrarProveedores("id", $idProveedor);
               <select name="productos[]" class="form-control" required>
                 <option value="">Seleccione un producto</option>
                 <?php
-                $productos = ControladorProductos::ctrMostrarProductos(null, null, null);
+                $productos = ControladorProductos::ctrMostrarProductos(null, null, "id");
                 foreach ($productos as $producto) {
                   echo '<option value="' . $producto["id"] . '">' . $producto["descripcion"] . '</option>';
                 }
