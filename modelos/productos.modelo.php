@@ -63,52 +63,63 @@ static public function mdlMostrarProductos($tabla, $item, $valor, $orden) {
   REGISTRO DE PRODUCTO
   Guarda producto global y luego stock en sucursal
   =============================================*/
-  static public function mdlIngresarProducto($tabla, $datos){
+ static public function mdlIngresarProducto($tabla, $datos){
 
-    $conexion = Conexion::conectar();
+	$conexion = Conexion::conectar();
 
-    $stmt = $conexion->prepare("
-  INSERT INTO $tabla 
-  (id_categoria, codigo, descripcion, imagen, stock, stock_minimo, precio_compra, precio_venta, fecha_vencimiento, tipo_sanitario, id_sucursal) 
-  VALUES 
-  (:id_categoria, :codigo, :descripcion, :imagen, 0, 0, :precio_compra, :precio_venta, :fecha_vencimiento, :tipo_sanitario, :id_sucursal)
-");
+	try {
 
-    $stmt->bindParam(":id_categoria", $datos["id_categoria"], PDO::PARAM_INT);
-    $stmt->bindParam(":codigo", $datos["codigo"], PDO::PARAM_STR);
-    $stmt->bindParam(":descripcion", $datos["descripcion"], PDO::PARAM_STR);
-    $stmt->bindParam(":imagen", $datos["imagen"], PDO::PARAM_STR);
-    $stmt->bindParam(":precio_compra", $datos["precio_compra"], PDO::PARAM_STR);
-    $stmt->bindParam(":precio_venta", $datos["precio_venta"], PDO::PARAM_STR);
-    $stmt->bindParam(":fecha_vencimiento", $datos["fecha_vencimiento"], PDO::PARAM_STR);
-    $stmt->bindParam(":tipo_sanitario", $datos["tipo_sanitario"], PDO::PARAM_STR);
-    $stmt->bindParam(":id_sucursal", $datos["id_sucursal"], PDO::PARAM_INT);
+		$stmt = $conexion->prepare("
+			INSERT INTO $tabla 
+			(id_categoria, codigo, descripcion, imagen, stock, stock_minimo, precio_compra, precio_venta, ventas, fecha_vencimiento, tipo_sanitario, id_sucursal) 
+			VALUES 
+			(:id_categoria, :codigo, :descripcion, :imagen, 0, 0, :precio_compra, :precio_venta, 0, :fecha_vencimiento, :tipo_sanitario, :id_sucursal)
+		");
 
-    if ($stmt->execute()) {
+		$stmt->bindParam(":id_categoria", $datos["id_categoria"], PDO::PARAM_INT);
+		$stmt->bindParam(":codigo", $datos["codigo"], PDO::PARAM_STR);
+		$stmt->bindParam(":descripcion", $datos["descripcion"], PDO::PARAM_STR);
+		$stmt->bindParam(":imagen", $datos["imagen"], PDO::PARAM_STR);
+		$stmt->bindParam(":precio_compra", $datos["precio_compra"], PDO::PARAM_STR);
+		$stmt->bindParam(":precio_venta", $datos["precio_venta"], PDO::PARAM_STR);
 
-      $idProducto = $conexion->lastInsertId();
-      $idSucursal = isset($_SESSION["id_sucursal"]) ? (int)$_SESSION["id_sucursal"] : 0;
+		if(empty($datos["fecha_vencimiento"])){
+			$stmt->bindValue(":fecha_vencimiento", null, PDO::PARAM_NULL);
+		}else{
+			$stmt->bindValue(":fecha_vencimiento", $datos["fecha_vencimiento"], PDO::PARAM_STR);
+		}
 
-      if($idSucursal > 0){
+		$stmt->bindParam(":tipo_sanitario", $datos["tipo_sanitario"], PDO::PARAM_STR);
+		$stmt->bindParam(":id_sucursal", $datos["id_sucursal"], PDO::PARAM_INT);
 
-        $respStock = self::mdlCrearStockSucursal(
-          $idProducto,
-          $idSucursal,
-          $datos["stock"],
-          $datos["stock_minimo"]
-        );
+		if($stmt->execute()){
 
-        if($respStock != "ok"){
-          return "error";
-        }
-      }
+			$idProducto = $conexion->lastInsertId();
+			$idSucursal = isset($_SESSION["id_sucursal"]) ? (int)$_SESSION["id_sucursal"] : 0;
 
-      return "ok";
+			if($idSucursal > 0){
 
-    } else {
-      return "error";
-    }
-  }
+				$respStock = self::mdlCrearStockSucursal(
+					$idProducto,
+					$idSucursal,
+					$datos["stock"],
+					$datos["stock_minimo"]
+				);
+
+				if($respStock != "ok"){
+					return "error stock_sucursal";
+				}
+			}
+
+			return "ok";
+		}
+
+		return "error insert producto";
+
+	} catch (PDOException $e) {
+		return $e->getMessage();
+	}
+}
 
   /*=============================================
 EDITAR PRODUCTO
