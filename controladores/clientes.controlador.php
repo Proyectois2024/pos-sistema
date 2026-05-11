@@ -30,11 +30,7 @@ class ControladorClientes{
     );
 
     $respuesta = ModeloClientes::mdlIngresarCliente($tabla, $datos);
-	  echo "<pre>";
-var_dump($datos);
-var_dump($respuesta);
-echo "</pre>";
-exit();
+
 
     if ($respuesta == "ok") {
       echo '<script>
