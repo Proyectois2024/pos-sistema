@@ -1,10 +1,20 @@
 <?php
+
 require_once "controladores/proveedores.controlador.php";
 require_once "controladores/productos.controlador.php";
 require_once "controladores/compras.controlador.php";
 require_once "modelos/proveedores.modelo.php";
 require_once "modelos/productos.modelo.php";
 require_once "modelos/compras.modelo.php";
+
+if (!isset($_GET["idProveedor"]) || empty($_GET["idProveedor"])) {
+  echo '<script>window.location = "proveedores";</script>';
+  return;
+}
+
+$idProveedor = (int) $_GET["idProveedor"];
+
+$proveedor = ControladorProveedores::ctrMostrarProveedores("id", $idProveedor);
 
 if (!$proveedor || !isset($proveedor["id"])) {
   echo "<pre>";
@@ -16,13 +26,6 @@ if (!$proveedor || !isset($proveedor["id"])) {
   exit();
 }
 
-$idProveedor = (int) $_GET["idProveedor"];
-$proveedor = ControladorProveedores::ctrMostrarProveedores("id", $idProveedor);
-
-if (!$proveedor || !isset($proveedor["id"])) {
-  echo '<script>window.location = "proveedores";</script>';
-  return;
-}
 ?>
 
 <div class="content-wrapper">
