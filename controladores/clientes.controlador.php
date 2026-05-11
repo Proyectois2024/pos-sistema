@@ -86,11 +86,13 @@ class ControladorClientes{
 
 		if(isset($_POST["editarCliente"])){
 
-			if(preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ ]+$/', $_POST["editarCliente"]) &&
-			   preg_match('/^[0-9]+$/', $_POST["editarDocumentoId"]) &&
-			   preg_match('/^[^0-9][a-zA-Z0-9_]+([.][a-zA-Z0-9_]+)*[@][a-zA-Z0-9_]+([.][a-zA-Z0-9_]+)*[.][a-zA-Z]{2,4}$/', $_POST["editarEmail"]) && 
-			   preg_match('/^[()\-0-9 ]+$/', $_POST["editarTelefono"]) && 
-			   preg_match('/^[#\.\-a-zA-Z0-9 ]+$/', $_POST["editarDireccion"])){
+			if (
+    preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ ]+$/', $_POST["editarCliente"]) &&
+    (empty($_POST["editarDocumentoId"]) || preg_match('/^[0-9]+$/', $_POST["editarDocumentoId"])) &&
+    (empty($_POST["editarEmail"]) || preg_match('/^[^0-9][a-zA-Z0-9_]+([.][a-zA-Z0-9_]+)*[@][a-zA-Z0-9_]+([.][a-zA-Z0-9_]+)*[.][a-zA-Z]{2,4}$/', $_POST["editarEmail"])) &&
+    (empty($_POST["editarTelefono"]) || preg_match('/^[()\-0-9 ]+$/', $_POST["editarTelefono"])) &&
+    (empty($_POST["editarDireccion"]) || preg_match('/^[#\.\-a-zA-Z0-9 ]+$/', $_POST["editarDireccion"]))
+){
 
 			   	$tabla = "clientes";
 
