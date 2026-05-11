@@ -25,26 +25,28 @@ class ModeloUsuarios{
 
 	static public function mdlIngresarUsuario($tabla, $datos){
 
-		$stmt = Conexion::conectar()->prepare("
-			INSERT INTO $tabla(nombre, usuario, password, perfil, id_sucursal, foto) 
-			VALUES (:nombre, :usuario, :password, :perfil, :id_sucursal, :foto)
-		");
+	$stmt = Conexion::conectar()->prepare("
+		INSERT INTO $tabla(nombre, usuario, password, perfil, id_sucursal, foto, estado, ultimo_login) 
+		VALUES (:nombre, :usuario, :password, :perfil, :id_sucursal, :foto, :estado, :ultimo_login)
+	");
 
-		$stmt->bindParam(":nombre", $datos["nombre"], PDO::PARAM_STR);
-		$stmt->bindParam(":usuario", $datos["usuario"], PDO::PARAM_STR);
-		$stmt->bindParam(":password", $datos["password"], PDO::PARAM_STR);
-		$stmt->bindParam(":perfil", $datos["perfil"], PDO::PARAM_STR);
+	$stmt->bindParam(":nombre", $datos["nombre"], PDO::PARAM_STR);
+	$stmt->bindParam(":usuario", $datos["usuario"], PDO::PARAM_STR);
+	$stmt->bindParam(":password", $datos["password"], PDO::PARAM_STR);
+	$stmt->bindParam(":perfil", $datos["perfil"], PDO::PARAM_STR);
 
-		if($datos["id_sucursal"] === null){
-			$stmt->bindValue(":id_sucursal", null, PDO::PARAM_NULL);
-		}else{
-			$stmt->bindValue(":id_sucursal", $datos["id_sucursal"], PDO::PARAM_INT);
-		}
-
-		$stmt->bindParam(":foto", $datos["foto"], PDO::PARAM_STR);
-
-		return $stmt->execute() ? "ok" : "error";
+	if($datos["id_sucursal"] === null){
+		$stmt->bindValue(":id_sucursal", null, PDO::PARAM_NULL);
+	}else{
+		$stmt->bindValue(":id_sucursal", $datos["id_sucursal"], PDO::PARAM_INT);
 	}
+
+	$stmt->bindParam(":foto", $datos["foto"], PDO::PARAM_STR);
+	$stmt->bindValue(":estado", 1, PDO::PARAM_INT);
+	$stmt->bindValue(":ultimo_login", null, PDO::PARAM_NULL);
+
+	return $stmt->execute() ? "ok" : "error";
+}
 
 	static public function mdlEditarUsuario($tabla, $datos){
 	
