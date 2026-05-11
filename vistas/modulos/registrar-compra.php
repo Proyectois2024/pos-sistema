@@ -6,9 +6,14 @@ require_once "modelos/proveedores.modelo.php";
 require_once "modelos/productos.modelo.php";
 require_once "modelos/compras.modelo.php";
 
-if (!isset($_GET["idProveedor"]) || empty($_GET["idProveedor"])) {
-  echo '<script>window.location = "proveedores";</script>';
-  return;
+if (!$proveedor || !isset($proveedor["id"])) {
+  echo "<pre>";
+  echo "NO ENCONTRO PROVEEDOR\n";
+  var_dump($_GET);
+  var_dump($idProveedor);
+  var_dump($proveedor);
+  echo "</pre>";
+  exit();
 }
 
 $idProveedor = (int) $_GET["idProveedor"];
@@ -78,8 +83,8 @@ if (!$proveedor || !isset($proveedor["id"])) {
         </div>
 
         <?php
-        $guardar = new ControladorCompras();
-        $guardar->ctrCrearCompra();
+       // $guardar = new ControladorCompras();
+        //$guardar->ctrCrearCompra();
         ?>
       </form>
     </div>
