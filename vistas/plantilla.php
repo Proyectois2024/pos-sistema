@@ -200,7 +200,7 @@ CUERPO DOCUMENTO
 <script src="vistas/js/cotizaciones.js"></script>
 <script src="vistas/js/reportes.js"></script>
 <script src="vistas/js/sucursales.js"></script>
-
+<script src="vistas/js/proveedores.js"></script>
 
 
 </body>
