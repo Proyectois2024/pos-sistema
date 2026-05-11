@@ -7,32 +7,33 @@ class ModeloClientes{
 	/*=============================================
 	CREAR CLIENTE
 	=============================================*/
+static public function mdlIngresarCliente($tabla, $datos){
 
-	static public function mdlIngresarCliente($tabla, $datos){
+	try {
 
-		$stmt = Conexion::conectar()->prepare("INSERT INTO $tabla(nombre, documento, email, telefono, direccion, fecha_nacimiento) VALUES (:nombre, :documento, :email, :telefono, :direccion, :fecha_nacimiento)");
+		$stmt = Conexion::conectar()->prepare("
+			INSERT INTO $tabla(nombre, documento, email, telefono, direccion, fecha_nacimiento) 
+			VALUES (:nombre, :documento, :email, :telefono, :direccion, :fecha_nacimiento)
+		");
 
 		$stmt->bindParam(":nombre", $datos["nombre"], PDO::PARAM_STR);
-		$stmt->bindParam(":documento", $datos["documento"], PDO::PARAM_INT);
+		$stmt->bindParam(":documento", $datos["documento"], PDO::PARAM_STR);
 		$stmt->bindParam(":email", $datos["email"], PDO::PARAM_STR);
 		$stmt->bindParam(":telefono", $datos["telefono"], PDO::PARAM_STR);
 		$stmt->bindParam(":direccion", $datos["direccion"], PDO::PARAM_STR);
-		$stmt->bindParam(":fecha_nacimiento", $datos["fecha_nacimiento"], PDO::PARAM_STR);
 
-		if($stmt->execute()){
-
-			return "ok";
-
+		if(empty($datos["fecha_nacimiento"])){
+			$stmt->bindValue(":fecha_nacimiento", null, PDO::PARAM_NULL);
 		}else{
-
-			return "error";
-		
+			$stmt->bindValue(":fecha_nacimiento", $datos["fecha_nacimiento"], PDO::PARAM_STR);
 		}
 
-		$stmt->close();
-		$stmt = null;
+		return $stmt->execute() ? "ok" : "error";
 
+	} catch (PDOException $e) {
+		return $e->getMessage();
 	}
+}
 
 	/*=============================================
 	MOSTRAR CLIENTES
