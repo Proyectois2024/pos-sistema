@@ -86,8 +86,8 @@ if (!$proveedor || !isset($proveedor["id"])) {
         </div>
 
         <?php
-       // $guardar = new ControladorCompras();
-        //$guardar->ctrCrearCompra();
+        $guardar = new ControladorCompras();
+        $guardar->ctrCrearCompra();
         ?>
       </form>
     </div>
