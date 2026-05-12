@@ -4,6 +4,16 @@ class ControladorCompras {
 
   public function ctrCrearCompra() {
 
+    echo "<pre>";
+echo "SESSION:\n";
+print_r($_SESSION);
+
+echo "\nPOST:\n";
+print_r($_POST);
+echo "</pre>";
+exit();
+
+    
     ini_set('display_errors', 1);
     error_reporting(E_ALL);
 
