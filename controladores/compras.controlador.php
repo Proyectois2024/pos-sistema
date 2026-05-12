@@ -33,15 +33,6 @@ class ControladorCompras {
 
       $idCompra = ModeloCompras::mdlCrearCompra("compras", $datosCompra);
 
-      echo "<pre>";
-echo "DATOS COMPRA:\n";
-print_r($datosCompra);
-
-echo "\nID COMPRA:\n";
-var_dump($idCompra);
-echo "</pre>";
-exit();
-
       if ($idCompra) {
 
         $productos = $_POST["productos"];
@@ -72,6 +63,15 @@ exit();
           );
 
           $respDetalle = ModeloCompras::mdlInsertarDetalleCompra("detalle_compra", $detalle);
+
+          echo "<pre>";
+echo "DETALLE:\n";
+print_r($detalle);
+
+echo "\nRESP DETALLE:\n";
+var_dump($respDetalle);
+echo "</pre>";
+exit();
 
           if(!$respDetalle){
             echo '<script>
