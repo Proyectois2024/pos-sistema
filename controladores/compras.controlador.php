@@ -3,17 +3,6 @@
 class ControladorCompras {
 
   public function ctrCrearCompra() {
-
-    echo "<pre>";
-echo "SESSION:\n";
-print_r($_SESSION);
-
-echo "\nPOST:\n";
-print_r($_POST);
-echo "</pre>";
-exit();
-
-    
     ini_set('display_errors', 1);
     error_reporting(E_ALL);
 
@@ -43,6 +32,15 @@ exit();
       );
 
       $idCompra = ModeloCompras::mdlCrearCompra("compras", $datosCompra);
+
+      echo "<pre>";
+echo "DATOS COMPRA:\n";
+print_r($datosCompra);
+
+echo "\nID COMPRA:\n";
+var_dump($idCompra);
+echo "</pre>";
+exit();
 
       if ($idCompra) {
 
