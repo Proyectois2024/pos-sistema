@@ -552,7 +552,7 @@ static public function mdlAuditoriaVentas($tabla, $filtros = array()){
 
     $conexion = Conexion::conectar();
 
-    $sql = "SELECT * FROM $tabla WHERE 1=1 AND estado != 0";
+    $sql = "SELECT * FROM $tabla WHERE 1=1";
     $params = array();
 
     if(isset($filtros["id_sucursal"]) && $filtros["id_sucursal"] !== null && (int)$filtros["id_sucursal"] > 0){
