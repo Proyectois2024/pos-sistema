@@ -953,7 +953,7 @@ public function ctrDescargarReporte(){
 				<td style='font-weight:bold; border:1px solid #eee;'>NETO</td>
 				<td style='font-weight:bold; border:1px solid #eee;'>TOTAL</td>
 				<td style='font-weight:bold; border:1px solid #eee;'>FECHA</td>
-			</tr>"
+			</tr>";
 
 		if(is_array($ventasFiltradas)){
 
@@ -990,7 +990,7 @@ public function ctrDescargarReporte(){
 					<td style='border:1px solid #eee;'>Q ".number_format((float)$item["neto"], 2)."</td>
 					<td style='border:1px solid #eee;'>Q ".number_format((float)$item["total"], 2)."</td>
 					<td style='border:1px solid #eee;'>".$item["fecha"]."</td>
-				</tr>"
+				</tr>";
 			}
 		}
 
