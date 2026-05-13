@@ -10,6 +10,9 @@ require_once "../modelos/categorias.modelo.php";
 class AjaxProductos{
 
   public $idCategoria;
+  public $idProducto;
+  public $traerProductos;
+  public $nombreProducto;
 
   public function ajaxCrearCodigoProducto(){
 
@@ -22,10 +25,6 @@ class AjaxProductos{
     echo json_encode($respuesta);
   }
 
-  public $idProducto;
-  public $traerProductos;
-  public $nombreProducto;
-
   public function ajaxEditarProducto(){
 
     if($this->traerProductos == "ok"){
@@ -34,35 +33,26 @@ class AjaxProductos{
       $valor = null;
       $orden = "id";
 
-      $respuesta = ControladorProductos::ctrMostrarProductos($item, $valor, $orden);
-
-      echo json_encode($respuesta);
-
     }else if($this->nombreProducto != ""){
 
       $item = "descripcion";
       $valor = $this->nombreProducto;
       $orden = "id";
 
-      $respuesta = ControladorProductos::ctrMostrarProductos($item, $valor, $orden);
-
-      echo json_encode($respuesta);
-
     }else{
 
       $item = "id";
       $valor = $this->idProducto;
       $orden = "id";
-
-      $respuesta = ControladorProductos::ctrMostrarProductos($item, $valor, $orden);
-
-      echo json_encode($respuesta);
     }
-  }
-  if(isset($_POST["codigoProducto"])){
 
-  require_once "../controladores/productos.controlador.php";
-  require_once "../modelos/productos.modelo.php";
+    $respuesta = ControladorProductos::ctrMostrarProductos($item, $valor, $orden);
+
+    echo json_encode($respuesta);
+  }
+}
+
+if(isset($_POST["codigoProducto"])){
 
   $item = "codigo";
   $valor = $_POST["codigoProducto"];
@@ -71,7 +61,7 @@ class AjaxProductos{
   $respuesta = ControladorProductos::ctrMostrarProductos($item, $valor, $orden);
 
   echo json_encode($respuesta);
-}
+  return;
 }
 
 if(isset($_POST["idCategoria"])){
