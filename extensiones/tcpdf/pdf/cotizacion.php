@@ -2,9 +2,11 @@
 
 ob_start();
 
+ini_set("memory_limit", "512M");
+set_time_limit(120);
+
 error_reporting(E_ALL & ~E_DEPRECATED);
 ini_set("display_errors", 1);
-ini_set("log_errors", 1);
 
 require_once "../../../controladores/cotizaciones.controlador.php";
 require_once "../../../modelos/cotizaciones.modelo.php";
