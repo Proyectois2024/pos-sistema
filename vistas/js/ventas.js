@@ -1082,3 +1082,17 @@ function agregarProductoEscaneado(respuesta){
 
   $(".nuevoPrecioProducto").number(true, 2);
 }
+$(".formularioVenta").on("submit", function(){
+
+  $(".btnGuardarVenta").prop("disabled", true).html("Guardando...");
+
+});
+setInterval(function(){
+
+  if($(".tablaProductosVenta").length){
+
+    $(".tablaProductosVenta").DataTable().ajax.reload(null, false);
+
+  }
+
+}, 5000);
