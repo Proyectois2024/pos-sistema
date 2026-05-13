@@ -1,9 +1,4 @@
 <?php
-if(isset($_GET["reporte"])){
-  $reporte = new ControladorVentas();
-  $reporte->ctrDescargarReporte();
-  exit();
-}
 
 if($_SESSION["perfil"] != "Administrador"){
   echo '<script>window.location = "inicio";</script>';
