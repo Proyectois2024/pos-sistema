@@ -942,7 +942,7 @@ public function ctrDescargarReporte(){
 		header('Content-Disposition:; filename="'.$Name.'"');
 		header("Content-Transfer-Encoding: binary");
 
-		echo utf8_decode("<table border='1'>
+		echo "<table border='1'>
 			<tr>
 				<td style='font-weight:bold; border:1px solid #eee;'>SUCURSAL</td>
 				<td style='font-weight:bold; border:1px solid #eee;'>CÓDIGO</td>
@@ -980,7 +980,7 @@ public function ctrDescargarReporte(){
 
 				$estado = ((int)$item["estado"] === 1) ? "Activa" : "Devuelta";
 
-				echo utf8_decode("<tr>
+				echo "<tr>
 					<td style='border:1px solid #eee;'>".$nombreSucursal."</td>
 					<td style='border:1px solid #eee;'>".$item["codigo"]."</td>
 					<td style='border:1px solid #eee;'>".(isset($cliente["nombre"]) ? $cliente["nombre"] : "")."</td>
