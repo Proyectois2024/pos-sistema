@@ -59,6 +59,19 @@ class AjaxProductos{
       echo json_encode($respuesta);
     }
   }
+  if(isset($_POST["codigoProducto"])){
+
+  require_once "../controladores/productos.controlador.php";
+  require_once "../modelos/productos.modelo.php";
+
+  $item = "codigo";
+  $valor = $_POST["codigoProducto"];
+  $orden = "id";
+
+  $respuesta = ControladorProductos::ctrMostrarProductos($item, $valor, $orden);
+
+  echo json_encode($respuesta);
+}
 }
 
 if(isset($_POST["idCategoria"])){
