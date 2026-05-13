@@ -995,3 +995,90 @@ $(document).ready(function(){
     }
 
 });
+
+$("#buscarCodigoBarra").on("keypress", function(e){
+
+  if(e.which == 13){
+
+    e.preventDefault();
+
+    var codigo = $(this).val().trim();
+
+    if(codigo == ""){
+      return;
+    }
+
+    var datos = new FormData();
+    datos.append("codigoProducto", codigo);
+
+    $.ajax({
+      url: "ajax/productos.ajax.php",
+      method: "POST",
+      data: datos,
+      cache: false,
+      contentType: false,
+      processData: false,
+      dataType: "json",
+      success: function(respuesta){
+
+        if(!respuesta || !respuesta["id"]){
+          swal({
+            type: "error",
+            title: "Producto no encontrado",
+            confirmButtonText: "Cerrar"
+          });
+
+          $("#buscarCodigoBarra").val("");
+          return;
+        }
+
+        agregarProductoEscaneado(respuesta);
+        $("#buscarCodigoBarra").val("").focus();
+      }
+    });
+  }
+});
+
+function agregarProductoEscaneado(respuesta){
+
+  var idProducto = respuesta["id"];
+  var descripcion = respuesta["descripcion"];
+  var stock = Number(respuesta["stock"]);
+  var precio = respuesta["precio_venta"];
+
+  if(stock <= 0){
+    swal({
+      type: "error",
+      title: "Sin stock",
+      text: "No hay stock disponible",
+      confirmButtonText: "Cerrar"
+    });
+    return;
+  }
+
+  $(".nuevoProducto").append(
+    '<div class="row" style="padding:5px 15px">'+
+      '<div class="col-xs-6" style="padding-right:0px">'+
+        '<div class="input-group">'+
+          '<span class="input-group-addon"><button type="button" class="btn btn-danger btn-xs quitarProducto" idProducto="'+idProducto+'"><i class="fa fa-times"></i></button></span>'+
+          '<input type="text" class="form-control nuevaDescripcionProducto" idProducto="'+idProducto+'" name="agregarProducto" value="'+descripcion+'" readonly required>'+
+        '</div>'+
+      '</div>'+
+      '<div class="col-xs-3 ingresoCantidad">'+
+        '<input type="number" class="form-control nuevaCantidadProducto" name="nuevaCantidadProducto" min="1" value="1" stock="'+stock+'" nuevoStock="'+Number(stock-1)+'" required>'+
+      '</div>'+
+      '<div class="col-xs-3 ingresoPrecio" style="padding-left:0px">'+
+        '<div class="input-group">'+
+          '<span class="input-group-addon"><strong>Q</strong></span>'+
+          '<input type="text" class="form-control nuevoPrecioProducto" precioReal="'+precio+'" name="nuevoPrecioProducto" value="'+precio+'" readonly required>'+
+        '</div>'+
+      '</div>'+
+    '</div>'
+  );
+
+  sumarTotalPrecios();
+  agregarImpuesto();
+  listarProductos();
+
+  $(".nuevoPrecioProducto").number(true, 2);
+}
