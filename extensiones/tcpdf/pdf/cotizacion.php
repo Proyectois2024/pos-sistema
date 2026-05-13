@@ -1,5 +1,11 @@
 <?php
 
+ob_start();
+
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
+ini_set("display_errors", 0);
+ini_set("log_errors", 1);
+
 require_once "../../../controladores/cotizaciones.controlador.php";
 require_once "../../../modelos/cotizaciones.modelo.php";
 
@@ -245,4 +251,7 @@ $pdf->SetFont("helvetica", "I", 9);
 $pdf->SetTextColor(80, 80, 80);
 $pdf->Cell(0, 6, "AGROPECUARIA CHONAY, SOMOS ASESORIA TECNICA RESPONSABLE...", 0, 1, "C");
 
+if(ob_get_length()){
+    ob_end_clean();
+}
 $pdf->Output("cotizacion_".$codigo.".pdf", "I");
