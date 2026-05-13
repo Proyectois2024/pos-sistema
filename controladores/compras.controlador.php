@@ -6,7 +6,11 @@ class ControladorCompras {
     ini_set('display_errors', 1);
     error_reporting(E_ALL);
 
-    if (isset($_POST["idProveedor"]) && isset($_POST["productos"]) && !empty($_POST["productos"])) {
+  if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+  return;
+}
+
+if (isset($_POST["idProveedor"]) && isset($_POST["productos"]) && !empty($_POST["productos"])) {
 
       $idSucursal = isset($_SESSION["id_sucursal"]) ? (int)$_SESSION["id_sucursal"] : 0;
 
