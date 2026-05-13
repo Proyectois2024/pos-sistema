@@ -2,6 +2,10 @@
 
 ob_start(); // Inicia la captura del búfer para evitar salidas accidentales
 
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
+ini_set("display_errors", 0);
+ini_set("log_errors", 1);
+
 require_once "../../../controladores/ventas.controlador.php";
 require_once "../../../modelos/ventas.modelo.php";
 
@@ -59,7 +63,9 @@ $respuestaVendedor = ControladorUsuarios::ctrMostrarUsuarios($itemVendedor, $val
 //REQUERIMOS LA CLASE TCPDF
 
 require_once('tcpdf_include.php');
-ob_clean(); // Limpia cualquier salida previa antes del PDF
+if (ob_get_length()) {
+    ob_end_clean();
+}// Limpia cualquier salida previa antes del PDF
 
 $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
@@ -313,6 +319,9 @@ $pdf->writeHTML($bloque5, false, false, false, false, '');
 //SALIDA DEL ARCHIVO 
 
 //$pdf->Output('factura.pdf', 'D');
+	if (ob_get_length()) {
+    ob_end_clean();
+}
 $pdf->Output('factura.pdf');
 
 }
