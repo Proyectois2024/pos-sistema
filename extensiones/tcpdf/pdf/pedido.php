@@ -1,5 +1,14 @@
 <?php
 
+ob_start();
+
+ini_set("memory_limit", "512M");
+set_time_limit(120);
+
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
+ini_set("display_errors", 0);
+ini_set("log_errors", 1);
+
 require_once "../../../controladores/cotizaciones.controlador.php";
 require_once "../../../modelos/cotizaciones.modelo.php";
 
@@ -197,5 +206,9 @@ $pdf->Line(18, $yFirma, 100, $yFirma);
 $pdf->Ln(3);
 $pdf->SetFont("helvetica", "", 10);
 $pdf->Cell(82, 6, "FIRMA DE RECIBIDO", 0, 1, "C");
+
+while (ob_get_level() > 0) {
+    ob_end_clean();
+}
 
 $pdf->Output("pedido_".$codigo.".pdf", "I");
