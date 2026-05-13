@@ -345,7 +345,7 @@ $caja = ControladorCaja::ctrObtenerCajaAbierta($_SESSION["id"]);
 
             <div class="box-footer">
 
-              <button type="submit" class="btn btn-primary pull-right">Guardar venta</button>
+             <button type="submit" class="btn btn-primary pull-right btnGuardarVenta">Guardar venta</button>
 
             </div>
 
