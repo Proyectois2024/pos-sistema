@@ -2,6 +2,27 @@
 
 session_start();
 
+/*=============================================
+DESCARGAR REPORTE AUDITORÍA
+=============================================*/
+if(isset($_GET["ruta"]) && $_GET["ruta"] == "auditoria-ventas" && isset($_GET["reporte"])){
+
+	require_once "controladores/ventas.controlador.php";
+	require_once "modelos/ventas.modelo.php";
+
+	require_once "controladores/clientes.controlador.php";
+	require_once "modelos/clientes.modelo.php";
+
+	require_once "controladores/usuarios.controlador.php";
+	require_once "modelos/usuarios.modelo.php";
+
+	$reporte = new ControladorVentas();
+	$reporte->ctrDescargarReporte();
+
+	exit();
+
+}
+
 ?>
 
 <!DOCTYPE html>
