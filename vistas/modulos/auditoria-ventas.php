@@ -1,4 +1,9 @@
 <?php
+if(isset($_GET["reporte"])){
+  $reporte = new ControladorVentas();
+  $reporte->ctrDescargarReporte();
+  exit();
+}
 
 if($_SESSION["perfil"] != "Administrador"){
   echo '<script>window.location = "inicio";</script>';
@@ -201,6 +206,9 @@ if(is_array($ventas)){
       </div>
 
       <div class="box-body">
+        <a href="index.php?ruta=auditoria-ventas&reporte=auditoria_ventas&aud_sucursal=<?php echo $_GET['aud_sucursal'] ?? ''; ?>&aud_fecha_inicial=<?php echo $_GET['aud_fecha_inicial'] ?? ''; ?>&aud_fecha_final=<?php echo $_GET['aud_fecha_final'] ?? ''; ?>&aud_estado=<?php echo $_GET['aud_estado'] ?? ''; ?>&aud_metodo_pago=<?php echo $_GET['aud_metodo_pago'] ?? ''; ?>&aud_vendedor=<?php echo $_GET['aud_vendedor'] ?? ''; ?>&aud_cliente=<?php echo $_GET['aud_cliente'] ?? ''; ?>" class="btn btn-success">
+  Exportar Excel
+</a>
         <table class="table table-bordered table-striped dt-responsive tablas" width="100%">
           <thead>
             <tr>
@@ -255,9 +263,7 @@ if(is_array($ventas)){
               }
             }
             ?>
-<a href="index.php?ruta=auditoria-ventas&reporte=auditoria_ventas&aud_sucursal=<?php echo $_GET['aud_sucursal'] ?? ''; ?>&aud_fecha_inicial=<?php echo $_GET['aud_fecha_inicial'] ?? ''; ?>&aud_fecha_final=<?php echo $_GET['aud_fecha_final'] ?? ''; ?>&aud_estado=<?php echo $_GET['aud_estado'] ?? ''; ?>&aud_metodo_pago=<?php echo $_GET['aud_metodo_pago'] ?? ''; ?>&aud_vendedor=<?php echo $_GET['aud_vendedor'] ?? ''; ?>&aud_cliente=<?php echo $_GET['aud_cliente'] ?? ''; ?>" class="btn btn-success">
-  Exportar Excel
-</a>
+
           </tbody>
         </table>
       </div>
