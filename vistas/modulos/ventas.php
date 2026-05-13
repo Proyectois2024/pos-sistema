@@ -98,11 +98,37 @@ foreach ($respuesta as $value) {
   echo '<td>' . ($vendedor["nombre"] ?? "N/A") . '</td>';
 
   // Método de pago
-  if($value["metodo_pago"] == "Credito"){
-    echo '<td><button class="btn btn-xs btn-warning">Crédito</button></td>';
-  } else {
-    echo '<td>'.$value["metodo_pago"].'</td>';
+ if($value["metodo_pago"] == "Credito"){
+
+  if($value["estado_credito"] == "pagado"){
+
+    echo '<td>
+            <button class="btn btn-xs btn-success">
+              Crédito Pagado
+            </button>
+          </td>';
+
+  }elseif($value["estado_credito"] == "parcial"){
+
+    echo '<td>
+            <button class="btn btn-xs btn-warning">
+              Crédito Parcial
+            </button>
+          </td>';
+
+  }else{
+
+    echo '<td>
+            <button class="btn btn-xs btn-danger">
+              Crédito Pendiente
+            </button>
+          </td>';
   }
+
+}else{
+
+  echo '<td>'.$value["metodo_pago"].'</td>';
+}
 
   echo '<td>Q '.number_format($value["neto"],2).'</td>
         <td>Q '.number_format($value["total"],2).'</td>
