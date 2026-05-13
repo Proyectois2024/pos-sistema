@@ -68,15 +68,6 @@ if (isset($_POST["idProveedor"]) && isset($_POST["productos"]) && !empty($_POST[
 
           $respDetalle = ModeloCompras::mdlInsertarDetalleCompra("detalle_compra", $detalle);
 
-          echo "<pre>";
-echo "DETALLE:\n";
-print_r($detalle);
-
-echo "\nRESP DETALLE:\n";
-var_dump($respDetalle);
-echo "</pre>";
-exit();
-
           if(!$respDetalle){
             echo '<script>
               swal({
