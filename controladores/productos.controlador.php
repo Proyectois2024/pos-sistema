@@ -2,90 +2,154 @@
 
 class ControladorProductos {
 
- /*=============================================
-MOSTRAR PRODUCTOS
-=============================================*/
-static public function ctrMostrarProductos($item, $valor, $orden) {
+  /*=============================================
+  FUNCIÓN AUXILIAR: SUBIR IMAGEN A CLOUDINARY
+  =============================================*/
+  static private function subirACloudinary($archivoTemporal, $nombreArchivo) {
+    // Reemplaza esto con el nombre de tu Preset 'Unsigned' creado en Cloudinary
+    $uploadPreset = "pos_preset"; 
+    $cloudName = "pkpk2vjr";
 
-  $tabla = "productos";
-  return ModeloProductos::mdlMostrarProductos($tabla, $item, $valor, $orden);
-}
+    $cFile = curl_file_create($archivoTemporal, $_FILES[$nombreArchivo]["type"], $_FILES[$nombreArchivo]["name"]);
+
+    $postData = array(
+      'file' => $cFile,
+      'upload_preset' => $uploadPreset,
+      'folder' => 'pos_productos' // Opcional: Organiza las imágenes dentro de esta carpeta en Cloudinary
+    );
+
+    $ch = curl_init("https://api.cloudinary.com/v1_1/" . $cloudName . "/image/upload");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+
+    $response = json_decode(curl_exec($ch), true);
+    curl_close($ch);
+
+    if (isset($response['secure_url'])) {
+      return $response['secure_url'];
+    }
+
+    return null;
+  }
+
+  /*=============================================
+  MOSTRAR PRODUCTOS
+  =============================================*/
+  static public function ctrMostrarProductos($item, $valor, $orden) {
+
+    $tabla = "productos";
+    return ModeloProductos::mdlMostrarProductos($tabla, $item, $valor, $orden);
+  }
 
   static public function ctrContarProductosPorSucursal(){
 
-  $tabla = "productos";
-  $respuesta = ModeloProductos::mdlContarProductosPorSucursal($tabla);
+    $tabla = "productos";
+    $respuesta = ModeloProductos::mdlContarProductosPorSucursal($tabla);
 
-  return $respuesta;
-}
+    return $respuesta;
+  }
 
+  /*=============================================
+  CREAR PRODUCTO
+  =============================================*/
   static public function ctrCrearProducto() {
 
-  if (isset($_POST["nuevaDescripcion"])) {
+    if (isset($_POST["nuevaDescripcion"])) {
 
-    if (
-      preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ ]+$/', $_POST["nuevaDescripcion"]) &&
-      is_numeric($_POST["nuevoStock"]) &&
-      preg_match('/^[0-9.]+$/', $_POST["nuevoPrecioCompra"]) &&
-      preg_match('/^[0-9.]+$/', $_POST["nuevoPrecioVenta"])
-    ) {
+      if (
+        preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ ]+$/', $_POST["nuevaDescripcion"]) &&
+        is_numeric($_POST["nuevoStock"]) &&
+        preg_match('/^[0-9.]+$/', $_POST["nuevoPrecioCompra"]) &&
+        preg_match('/^[0-9.]+$/', $_POST["nuevoPrecioVenta"])
+      ) {
 
-      $ruta = "vistas/img/productos/default/anonymous.png";
+        $ruta = "vistas/img/productos/default/anonymous.png";
 
-      if (isset($_FILES["nuevaImagen"]["tmp_name"]) && !empty($_FILES["nuevaImagen"]["tmp_name"])) {
+        if (isset($_FILES["nuevaImagen"]["tmp_name"]) && !empty($_FILES["nuevaImagen"]["tmp_name"])) {
+          
+          $urlCloudinary = self::subirACloudinary($_FILES["nuevaImagen"]["tmp_name"], "nuevaImagen");
+          
+          if ($urlCloudinary != null) {
+            $ruta = $urlCloudinary;
+          }
 
-        list($ancho, $alto) = getimagesize($_FILES["nuevaImagen"]["tmp_name"]);
-        $nuevoAncho = 500;
-        $nuevoAlto = 500;
-
-        $directorio = "vistas/img/productos/" . $_POST["nuevoCodigo"];
-        if(!is_dir($directorio)){
-          mkdir($directorio, 0755, true);
         }
 
-        $aleatorio = mt_rand(100, 999);
+        $tabla = "productos";
 
-        if ($_FILES["nuevaImagen"]["type"] == "image/jpeg") {
+        $datos = array(
+          "id_categoria" => $_POST["nuevaCategoria"],
+          "codigo" => $_POST["nuevoCodigo"],
+          "descripcion" => $_POST["nuevaDescripcion"],
+          "stock" => $_POST["nuevoStock"],
+          "stock_minimo" => $_POST["nuevoStockMinimo"],
+          "precio_compra" => $_POST["nuevoPrecioCompra"],
+          "precio_venta" => $_POST["nuevoPrecioVenta"],
+          "tipo_sanitario" => $_POST["nuevoTipoSanitario"],
+          "id_sucursal" => $_SESSION["id_sucursal"],
+          "imagen" => $ruta,
+          "fecha_vencimiento" => !empty($_POST["nuevaFechaVencimiento"]) ? $_POST["nuevaFechaVencimiento"] : null,
+        );
 
-          $ruta = $directorio . "/" . $aleatorio . ".jpg";
-          $origen = imagecreatefromjpeg($_FILES["nuevaImagen"]["tmp_name"]);
-          $destino = imagecreatetruecolor($nuevoAncho, $nuevoAlto);
-          imagecopyresized($destino, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $ancho, $alto);
-          imagejpeg($destino, $ruta);
+        $respuesta = ModeloProductos::mdlIngresarProducto($tabla, $datos);
 
-        } else if ($_FILES["nuevaImagen"]["type"] == "image/png") {
-
-          $ruta = $directorio . "/" . $aleatorio . ".png";
-          $origen = imagecreatefrompng($_FILES["nuevaImagen"]["tmp_name"]);
-          $destino = imagecreatetruecolor($nuevoAncho, $nuevoAlto);
-          imagecopyresized($destino, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $ancho, $alto);
-          imagepng($destino, $ruta);
+        if ($respuesta == "ok") {
+          echo '<script>
+            swal({
+              type: "success",
+              title: "Producto creado correctamente",
+              confirmButtonText: "Cerrar"
+            }).then(function(result){
+              if (result.value) {
+                window.location = "productos";
+              }
+            })
+          </script>';
         }
+      }
+    }
+  }
+
+  /*=============================================
+  EDITAR PRODUCTO
+  =============================================*/
+  static public function ctrEditarProducto() {
+
+    if (isset($_POST["editarDescripcion"])) {
+
+      $ruta = $_POST["imagenActual"];
+
+      if (isset($_FILES["editarImagen"]["tmp_name"]) && !empty($_FILES["editarImagen"]["tmp_name"])) {
+
+        $urlCloudinary = self::subirACloudinary($_FILES["editarImagen"]["tmp_name"], "editarImagen");
+
+        if ($urlCloudinary != null) {
+          $ruta = $urlCloudinary;
+        }
+
       }
 
       $tabla = "productos";
 
       $datos = array(
-        "id_categoria" => $_POST["nuevaCategoria"],
-        "codigo" => $_POST["nuevoCodigo"],
-        "descripcion" => $_POST["nuevaDescripcion"],
-        "stock" => $_POST["nuevoStock"],
-        "stock_minimo" => $_POST["nuevoStockMinimo"],
-        "precio_compra" => $_POST["nuevoPrecioCompra"],
-        "precio_venta" => $_POST["nuevoPrecioVenta"],
-        "tipo_sanitario" => $_POST["nuevoTipoSanitario"],
-        "id_sucursal" => $_SESSION["id_sucursal"],
+        "id_categoria" => $_POST["editarCategoria"],
+        "codigo" => $_POST["editarCodigo"],
+        "descripcion" => $_POST["editarDescripcion"],
+        "stock" => $_POST["editarStock"],
+        "stock_minimo" => $_POST["editarStockMinimo"],
+        "precio_compra" => $_POST["editarPrecioCompra"],
+        "precio_venta" => $_POST["editarPrecioVenta"],
         "imagen" => $ruta,
-        "fecha_vencimiento" => !empty($_POST["nuevaFechaVencimiento"]) ? $_POST["nuevaFechaVencimiento"] : null,
+        "fecha_vencimiento" => !empty($_POST["editarFechaVencimiento"]) ? $_POST["editarFechaVencimiento"] : null,
       );
 
-      $respuesta = ModeloProductos::mdlIngresarProducto($tabla, $datos);
+      $respuesta = ModeloProductos::mdlEditarProducto($tabla, $datos);
 
       if ($respuesta == "ok") {
         echo '<script>
           swal({
             type: "success",
-            title: "Producto creado correctamente",
+            title: "Producto editado correctamente",
             confirmButtonText: "Cerrar"
           }).then(function(result){
             if (result.value) {
@@ -96,118 +160,45 @@ static public function ctrMostrarProductos($item, $valor, $orden) {
       }
     }
   }
-}
 
-  static public function ctrEditarProducto() {
+  /*=============================================
+  ELIMINAR PRODUCTO
+  =============================================*/
+  static public function ctrEliminarProducto() {
 
-  if (isset($_POST["editarDescripcion"])) {
+    if (isset($_GET["idProducto"])) {
 
-    $ruta = $_POST["imagenActual"];
+      $tabla = "productos";
+      $id = $_GET["idProducto"];
 
-    if (isset($_FILES["editarImagen"]["tmp_name"]) && !empty($_FILES["editarImagen"]["tmp_name"])) {
+      $respuesta = ModeloProductos::mdlEliminarProducto($tabla, $id);
 
-      list($ancho, $alto) = getimagesize($_FILES["editarImagen"]["tmp_name"]);
-      $nuevoAncho = 500;
-      $nuevoAlto = 500;
-
-      $directorio = "vistas/img/productos/" . $_POST["editarCodigo"];
-
-      if (!empty($_POST["imagenActual"]) && $_POST["imagenActual"] != "vistas/img/productos/default/anonymous.png") {
-        if(file_exists($_POST["imagenActual"])){
-          unlink($_POST["imagenActual"]);
-        }
+      if($respuesta == "ok"){
+        echo '<script>
+          swal({
+            type: "success",
+            title: "Producto eliminado",
+            confirmButtonText: "Cerrar"
+          }).then(function(result){
+            if (result.value) {
+              window.location = "productos";
+            }
+          })
+        </script>';
       } else {
-        if(!is_dir($directorio)){
-          mkdir($directorio, 0755, true);
-        }
-      }
-
-      $aleatorio = mt_rand(100, 999);
-
-      if ($_FILES["editarImagen"]["type"] == "image/jpeg") {
-
-        $ruta = $directorio . "/" . $aleatorio . ".jpg";
-        $origen = imagecreatefromjpeg($_FILES["editarImagen"]["tmp_name"]);
-        $destino = imagecreatetruecolor($nuevoAncho, $nuevoAlto);
-        imagecopyresized($destino, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $ancho, $alto);
-        imagejpeg($destino, $ruta);
-
-      } else if ($_FILES["editarImagen"]["type"] == "image/png") {
-
-        $ruta = $directorio . "/" . $aleatorio . ".png";
-        $origen = imagecreatefrompng($_FILES["editarImagen"]["tmp_name"]);
-        $destino = imagecreatetruecolor($nuevoAncho, $nuevoAlto);
-        imagecopyresized($destino, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $ancho, $alto);
-        imagepng($destino, $ruta);
+        echo '<script>
+          swal({
+            type: "error",
+            title: "No se pudo eliminar el producto",
+            text: "Verifica que pertenezca a la sucursal actual",
+            confirmButtonText: "Cerrar"
+          })
+        </script>';
       }
     }
-
-    $tabla = "productos";
-
-    $datos = array(
-      "id_categoria" => $_POST["editarCategoria"],
-      "codigo" => $_POST["editarCodigo"],
-      "descripcion" => $_POST["editarDescripcion"],
-      "stock" => $_POST["editarStock"],
-      "stock_minimo" => $_POST["editarStockMinimo"],
-      "precio_compra" => $_POST["editarPrecioCompra"],
-      "precio_venta" => $_POST["editarPrecioVenta"],
-      "imagen" => $ruta,
-      "fecha_vencimiento" => !empty($_POST["editarFechaVencimiento"]) ? $_POST["editarFechaVencimiento"] : null,
-    );
-
-    $respuesta = ModeloProductos::mdlEditarProducto($tabla, $datos);
-
-    if ($respuesta == "ok") {
-      echo '<script>
-        swal({
-          type: "success",
-          title: "Producto editado correctamente",
-          confirmButtonText: "Cerrar"
-        }).then(function(result){
-          if (result.value) {
-            window.location = "productos";
-          }
-        })
-      </script>';
-    }
   }
-}
- static public function ctrEliminarProducto() {
 
-  if (isset($_GET["idProducto"])) {
-
-    $tabla = "productos";
-    $id = $_GET["idProducto"];
-
-    $respuesta = ModeloProductos::mdlEliminarProducto($tabla, $id);
-
-    if($respuesta == "ok"){
-      echo '<script>
-        swal({
-          type: "success",
-          title: "Producto eliminado",
-          confirmButtonText: "Cerrar"
-        }).then(function(result){
-          if (result.value) {
-            window.location = "productos";
-          }
-        })
-      </script>';
-    } else {
-      echo '<script>
-        swal({
-          type: "error",
-          title: "No se pudo eliminar el producto",
-          text: "Verifica que pertenezca a la sucursal actual",
-          confirmButtonText: "Cerrar"
-        })
-      </script>';
-    }
-  }
-}
-
-    /*=============================================
+  /*=============================================
   MOSTRAR TOTAL PRODUCTOS STOCK BAJO
   =============================================*/
   static public function ctrMostrarSumaStockBajo(){
