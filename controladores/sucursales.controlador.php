@@ -2,12 +2,13 @@
 
 class ControladorSucursales {
 
-  static public function ctrMostrarSucursales($item = null, $valor = null){
+    /*=============================================
+    MOSTRAR SUCURSALES
+    =============================================*/
+    static public function ctrMostrarSucursales(?string $item = null, mixed $valor = null): array|bool {
 
-    $tabla = "sucursales";
+        $tabla = "sucursales";
 
-    $respuesta = ModeloSucursales::mdlMostrarSucursales($tabla, $item, $valor);
-
-    return $respuesta;
-  }
+        return ModeloSucursales::mdlMostrarSucursales($tabla, $item, $valor);
+    }
 }
