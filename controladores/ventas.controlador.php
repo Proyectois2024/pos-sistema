@@ -78,24 +78,24 @@ class ControladorVentas{
 
 			$caja = ControladorCaja::ctrObtenerCajaAbierta();
 
-if(!$caja){
+			if(!$caja){
 
-  echo '<script>
-    swal({
-      type: "error",
-      title: "No hay caja abierta en esta sucursal",
-      text: "Debes abrir caja antes de realizar ventas",
-      showConfirmButton: true,
-      confirmButtonText: "Cerrar"
-    }).then(function(result){
-      if (result.value) {
-        window.location = "caja";
-      }
-    });
-  </script>';
+				echo '<script>
+					swal({
+						type: "error",
+						title: "No hay caja abierta en esta sucursal",
+						text: "Debes abrir caja antes de realizar ventas",
+						showConfirmButton: true,
+						confirmButtonText: "Cerrar"
+					}).then(function(result){
+						if (result.value) {
+							window.location = "caja";
+						}
+					});
+				</script>';
 
-  return;
-}
+				return;
+			}
 
 			$db = Conexion::conectar();
 
@@ -228,12 +228,12 @@ if(!$caja){
 				}
 
 				if($metodoPago === "Credito" && (!isset($_POST["seleccionarCliente"]) || (int)$_POST["seleccionarCliente"] <= 0)){
-	throw new Exception("Debes seleccionar un cliente para ventas a crédito");
-}
+					throw new Exception("Debes seleccionar un cliente para ventas a crédito");
+				}
 
-if($metodoPago === "Credito" && (!isset($_POST["nuevaFechaVencimiento"]) || trim($_POST["nuevaFechaVencimiento"]) == "")){
-	throw new Exception("Debes seleccionar una fecha de vencimiento para ventas a crédito");
-}
+				if($metodoPago === "Credito" && (!isset($_POST["nuevaFechaVencimiento"]) || trim($_POST["nuevaFechaVencimiento"]) == "")){
+					throw new Exception("Debes seleccionar una fecha de vencimiento para ventas a crédito");
+				}
 
 				$fechaVencimiento = null;
 				if(
@@ -264,22 +264,23 @@ if($metodoPago === "Credito" && (!isset($_POST["nuevaFechaVencimiento"]) || trim
 				if(!$respuesta || $respuesta == "error"){
 					throw new Exception("No se pudo guardar la venta");
 				}
+
 				if($metodoPago === "Credito"){
 
-	$datosCredito = array(
-		"id_venta" => (int)$respuesta,
-		"id_cliente" => isset($_POST["seleccionarCliente"]) ? (int)$_POST["seleccionarCliente"] : 0,
-		"total_venta" => isset($_POST["totalVenta"]) ? $_POST["totalVenta"] : 0,
-		"saldo_pendiente" => isset($_POST["totalVenta"]) ? $_POST["totalVenta"] : 0,
-		"estado" => 1
-	);
+					$datosCredito = array(
+						"id_venta" => (int)$respuesta,
+						"id_cliente" => isset($_POST["seleccionarCliente"]) ? (int)$_POST["seleccionarCliente"] : 0,
+						"total_venta" => isset($_POST["totalVenta"]) ? $_POST["totalVenta"] : 0,
+						"saldo_pendiente" => isset($_POST["totalVenta"]) ? $_POST["totalVenta"] : 0,
+						"estado" => 1
+					);
 
-	$respCredito = ModeloVentas::mdlCrearCredito($datosCredito);
+					$respCredito = ModeloVentas::mdlCrearCredito($datosCredito);
 
-	if($respCredito != "ok"){
-		throw new Exception("No se pudo crear el registro de crédito");
-	}
-}
+					if($respCredito != "ok"){
+						throw new Exception("No se pudo crear el registro de crédito");
+					}
+				}
 
 				/*=============================================
 				ACTUALIZAR ESTADO DE COTIZACIÓN
@@ -653,358 +654,360 @@ if($metodoPago === "Credito" && (!isset($_POST["nuevaFechaVencimiento"]) || trim
 	=============================================*/
 	static public function ctrEliminarVenta(){
 
-	if(isset($_GET["idVenta"])){
+		if(isset($_GET["idVenta"])){
+
+			$tabla = "ventas";
+			$idVenta = (int) $_GET["idVenta"];
+
+			$traerVenta = ModeloVentas::mdlMostrarVentas($tabla, "id", $idVenta);
+
+			if(!$traerVenta || !is_array($traerVenta)){
+
+				echo '<script>
+					swal({
+						type: "error",
+						title: "La venta no existe o ya fue eliminada",
+						showConfirmButton: true,
+						confirmButtonText: "Cerrar"
+					}).then(function(result){
+						if(result.value){
+							window.location = "ventas";
+						}
+					});
+				</script>';
+
+				return;
+			}
+
+			$productos = json_decode($traerVenta["productos"], true);
+
+			if(is_array($productos)){
+
+				foreach($productos as $value){
+
+					if(!isset($value["id"]) || !isset($value["cantidad"])){
+						continue;
+					}
+
+					$item = "id";
+					$valor = $value["id"];
+					$orden = "id";
+
+					$traerProducto = ModeloProductos::mdlMostrarProductos("productos", $item, $valor, $orden);
+
+					if(is_array($traerProducto)){
+
+						$item1a = "ventas";
+						$valor1a = max(0, $traerProducto["ventas"] - $value["cantidad"]);
+
+						ModeloProductos::mdlActualizarProducto("productos", $item1a, $valor1a, $valor);
+
+						$item1b = "stock";
+						$valor1b = $traerProducto["stock"] + $value["cantidad"];
+
+						ModeloProductos::mdlActualizarProducto("productos", $item1b, $valor1b, $valor);
+					}
+				}
+			}
+
+			if(isset($traerVenta["id_cliente"])){
+
+				$itemCliente = "id";
+				$valorCliente = $traerVenta["id_cliente"];
+
+				$traerCliente = ModeloClientes::mdlMostrarClientes("clientes", $itemCliente, $valorCliente);
+
+				if(is_array($traerCliente)){
+
+					$item1 = "compras";
+					$valor1 = max(0, $traerCliente["compras"] - 1);
+
+					ModeloClientes::mdlActualizarCliente("clientes", $item1, $valor1, $valorCliente);
+				}
+			}
+
+			$respuesta = ModeloVentas::mdlEliminarVenta($tabla, $idVenta);
+
+			if($respuesta == "ok"){
+
+				echo '<script>
+					swal({
+						type: "success",
+						title: "La venta ha sido borrada correctamente",
+						showConfirmButton: true,
+						confirmButtonText: "Cerrar"
+					}).then(function(result){
+						if(result.value){
+							window.location = "ventas";
+						}
+					});
+				</script>';
+
+			}else{
+
+				echo '<script>
+					swal({
+						type: "error",
+						title: "No se pudo borrar la venta",
+						showConfirmButton: true,
+						confirmButtonText: "Cerrar"
+					}).then(function(result){
+						if(result.value){
+							window.location = "ventas";
+						}
+					});
+				</script>';
+			}
+		}
+	}
+
+	/*=============================================
+	RANGO FECHAS
+	=============================================*/
+	static public function ctrRangoFechasVentas($fechaInicial, $fechaFinal){
 
 		$tabla = "ventas";
-		$idVenta = (int) $_GET["idVenta"];
+		$respuesta = ModeloVentas::mdlRangoFechasVentas($tabla, $fechaInicial, $fechaFinal);
 
-		$traerVenta = ModeloVentas::mdlMostrarVentas($tabla, "id", $idVenta);
+		$idSucursalSesion = isset($_SESSION["id_sucursal"]) ? (int)$_SESSION["id_sucursal"] : 0;
+		$ventasFiltradas = array();
 
-		if(!$traerVenta || !is_array($traerVenta)){
+		if(is_array($respuesta)){
+			foreach($respuesta as $venta){
 
-			echo '<script>
-				swal({
-					type: "error",
-					title: "La venta no existe o ya fue eliminada",
-					showConfirmButton: true,
-					confirmButtonText: "Cerrar"
-				}).then(function(result){
-					if(result.value){
-						window.location = "ventas";
-					}
-				});
-			</script>';
-
-			return;
-		}
-
-		$productos = json_decode($traerVenta["productos"], true);
-
-		if(is_array($productos)){
-
-			foreach($productos as $value){
-
-				if(!isset($value["id"]) || !isset($value["cantidad"])){
+				if(!is_array($venta)){
 					continue;
 				}
 
-				$item = "id";
-				$valor = $value["id"];
-				$orden = "id";
-
-				$traerProducto = ModeloProductos::mdlMostrarProductos("productos", $item, $valor, $orden);
-
-				if(is_array($traerProducto)){
-
-					$item1a = "ventas";
-					$valor1a = max(0, $traerProducto["ventas"] - $value["cantidad"]);
-
-					ModeloProductos::mdlActualizarProducto("productos", $item1a, $valor1a, $valor);
-
-					$item1b = "stock";
-					$valor1b = $traerProducto["stock"] + $value["cantidad"];
-
-					ModeloProductos::mdlActualizarProducto("productos", $item1b, $valor1b, $valor);
+				if(isset($venta["estado"]) && (int)$venta["estado"] === 0){
+					continue;
 				}
+
+				if($idSucursalSesion > 0){
+					if(!isset($venta["id_sucursal"]) || (int)$venta["id_sucursal"] !== $idSucursalSesion){
+						continue;
+					}
+				}
+
+				$ventasFiltradas[] = $venta;
 			}
 		}
 
-		if(isset($traerVenta["id_cliente"])){
+		return $ventasFiltradas;
+	}
 
-			$itemCliente = "id";
+	/*=============================================
+	DEVOLVER VENTA
+	=============================================*/
+	static public function ctrDevolverVenta(){
+
+		if(isset($_GET["idDevolucion"])){
+
+			$tabla = "ventas";
+			$item = "id";
+			$valor = (int)$_GET["idDevolucion"];
+			$comentario = isset($_GET["comentario"]) ? $_GET["comentario"] : "";
+
+			$traerVenta = ModeloVentas::mdlMostrarVentas($tabla, $item, $valor);
+
+			if(!$traerVenta || !is_array($traerVenta)){
+				return;
+			}
+
+			if(isset($traerVenta["estado"]) && (int)$traerVenta["estado"] === 0){
+				return;
+			}
+
+			$idSucursalVenta = self::ctrObtenerIdSucursalVenta($traerVenta);
+			$idSucursalSesion = isset($_SESSION["id_sucursal"]) ? (int)$_SESSION["id_sucursal"] : 0;
+
+			if($idSucursalSesion > 0 && $idSucursalVenta > 0 && $idSucursalSesion !== $idSucursalVenta){
+				echo '<script>
+					swal({
+						type: "error",
+						title: "No puedes devolver una venta de otra sucursal",
+						showConfirmButton: true,
+						confirmButtonText: "Cerrar"
+					}).then(function(result){
+						if (result.value) {
+							window.location = "ventas";
+						}
+					});
+				</script>';
+				return;
+			}
+
+			$productos = json_decode($traerVenta["productos"], true);
+			$totalProductosComprados = array();
+
+			if(is_array($productos)){
+				foreach ($productos as $value) {
+
+					if(!is_array($value) || !isset($value["cantidad"]) || !isset($value["id"])){
+						continue;
+					}
+
+					$totalProductosComprados[] = (float)$value["cantidad"];
+
+					$tablaProductos = "productos";
+					$itemProd = "id";
+					$valorProd = (int)$value["id"];
+					$orden = "id";
+
+					$traerProducto = ModeloProductos::mdlMostrarProductos($tablaProductos, $itemProd, $valorProd, $orden);
+
+					if(is_array($traerProducto)){
+
+						$stockSucursal = ModeloProductos::mdlObtenerStockSucursal($valorProd, $idSucursalVenta);
+
+						if($stockSucursal){
+							$stockActual = isset($stockSucursal["stock"]) ? (float)$stockSucursal["stock"] : 0;
+							$valor1b = (float)$value["cantidad"] + $stockActual;
+							ModeloProductos::mdlActualizarStockSucursal($valorProd, $idSucursalVenta, $valor1b);
+						}
+
+						$ventasActuales = isset($traerProducto["ventas"]) ? (float)$traerProducto["ventas"] : 0;
+
+						$valor1c = $ventasActuales - (float)$value["cantidad"];
+						if($valor1c < 0){
+							$valor1c = 0;
+						}
+
+						ModeloProductos::mdlActualizarProducto($tablaProductos, "ventas", $valor1c, $valorProd);
+					}
+				}
+			}
+
+			$tablaClientes = "clientes";
 			$valorCliente = $traerVenta["id_cliente"];
-
-			$traerCliente = ModeloClientes::mdlMostrarClientes("clientes", $itemCliente, $valorCliente);
+			$traerCliente = ModeloClientes::mdlMostrarClientes($tablaClientes, "id", $valorCliente);
 
 			if(is_array($traerCliente)){
 
-				$item1 = "compras";
-				$valor1 = max(0, $traerCliente["compras"] - 1);
+				$comprasActuales = isset($traerCliente["compras"]) ? (float)$traerCliente["compras"] : 0;
+				$valor1a = $comprasActuales - array_sum($totalProductosComprados);
 
-				ModeloClientes::mdlActualizarCliente("clientes", $item1, $valor1, $valorCliente);
-			}
-		}
-
-		$respuesta = ModeloVentas::mdlEliminarVenta($tabla, $idVenta);
-
-		if($respuesta == "ok"){
-
-			echo '<script>
-				swal({
-					type: "success",
-					title: "La venta ha sido borrada correctamente",
-					showConfirmButton: true,
-					confirmButtonText: "Cerrar"
-				}).then(function(result){
-					if(result.value){
-						window.location = "ventas";
-					}
-				});
-			</script>';
-
-		}else{
-
-			echo '<script>
-				swal({
-					type: "error",
-					title: "No se pudo borrar la venta",
-					showConfirmButton: true,
-					confirmButtonText: "Cerrar"
-				}).then(function(result){
-					if(result.value){
-						window.location = "ventas";
-					}
-				});
-			</script>';
-		}
-	}
-}
-	/*=============================================
-RANGO FECHAS
-=============================================*/
-static public function ctrRangoFechasVentas($fechaInicial, $fechaFinal){
-
-	$tabla = "ventas";
-	$respuesta = ModeloVentas::mdlRangoFechasVentas($tabla, $fechaInicial, $fechaFinal);
-
-	$idSucursalSesion = isset($_SESSION["id_sucursal"]) ? (int)$_SESSION["id_sucursal"] : 0;
-	$ventasFiltradas = array();
-
-	if(is_array($respuesta)){
-		foreach($respuesta as $venta){
-
-			if(!is_array($venta)){
-				continue;
-			}
-
-			if(isset($venta["estado"]) && (int)$venta["estado"] === 0){
-				continue;
-			}
-
-			if($idSucursalSesion > 0){
-				if(!isset($venta["id_sucursal"]) || (int)$venta["id_sucursal"] !== $idSucursalSesion){
-					continue;
+				if($valor1a < 0){
+					$valor1a = 0;
 				}
+
+				ModeloClientes::mdlActualizarCliente($tablaClientes, "compras", $valor1a, $valorCliente);
 			}
 
-			$ventasFiltradas[] = $venta;
+			$datos = array(
+				"id" => $valor,
+				"comentario" => $comentario,
+				"estado" => 0
+			);
+
+			$respuesta = ModeloVentas::mdlActualizarVentaDevolucion($tabla, $datos);
+
+			if($respuesta == "ok"){
+
+				$comentarioSeguro = addslashes($comentario);
+
+				echo '<script>
+					swal({
+						type: "success",
+						title: "Devolución procesada correctamente",
+						text: "Motivo: '.$comentarioSeguro.'",
+						showConfirmButton: true,
+						confirmButtonText: "Cerrar"
+					}).then(function(result){
+						if (result.value) {
+							window.location = "ventas";
+						}
+					});
+				</script>';
+			}
 		}
 	}
 
-	return $ventasFiltradas;
-}
-
 	/*=============================================
-DEVOLVER VENTA
-=============================================*/
-static public function ctrDevolverVenta(){
+	DESCARGAR EXCEL
+	=============================================*/
+	public function ctrDescargarReporte(){
 
-	if(isset($_GET["idDevolucion"])){
+		if(isset($_GET["reporte"])){
 
-		$tabla = "ventas";
-		$item = "id";
-		$valor = (int)$_GET["idDevolucion"];
-		$comentario = isset($_GET["comentario"]) ? $_GET["comentario"] : "";
+			$ventasFiltradas = self::ctrRangoFechasVentas(null, null);
 
-		$traerVenta = ModeloVentas::mdlMostrarVentas($tabla, $item, $valor);
+			$Name = $_GET["reporte"].'.xls';
 
-		if(!$traerVenta || !is_array($traerVenta)){
-			return;
-		}
+			header('Expires: 0');
+			header('Cache-control: private');
+			header("Content-type: application/vnd.ms-excel");
+			header("Cache-Control: cache, must-revalidate");
+			header('Content-Description: File Transfer');
+			header('Last-Modified: '.date('D, d M Y H:i:s'));
+			header("Pragma: public");
+			header('Content-Disposition: attachment; filename="'.$Name.'"');
+			header("Content-Transfer-Encoding: binary");
 
-		if(isset($traerVenta["estado"]) && (int)$traerVenta["estado"] === 0){
-			return;
-		}
-
-		$idSucursalVenta = self::ctrObtenerIdSucursalVenta($traerVenta);
-		$idSucursalSesion = isset($_SESSION["id_sucursal"]) ? (int)$_SESSION["id_sucursal"] : 0;
-
-		if($idSucursalSesion > 0 && $idSucursalVenta > 0 && $idSucursalSesion !== $idSucursalVenta){
-			echo '<script>
-				swal({
-					type: "error",
-					title: "No puedes devolver una venta de otra sucursal",
-					showConfirmButton: true,
-					confirmButtonText: "Cerrar"
-				}).then(function(result){
-					if (result.value) {
-						window.location = "ventas";
-					}
-				});
-			</script>';
-			return;
-		}
-
-		$productos = json_decode($traerVenta["productos"], true);
-		$totalProductosComprados = array();
-
-		if(is_array($productos)){
-			foreach ($productos as $value) {
-
-				if(!is_array($value) || !isset($value["cantidad"]) || !isset($value["id"])){
-					continue;
-				}
-
-				$totalProductosComprados[] = (float)$value["cantidad"];
-
-				$tablaProductos = "productos";
-				$itemProd = "id";
-				$valorProd = (int)$value["id"];
-				$orden = "id";
-
-				$traerProducto = ModeloProductos::mdlMostrarProductos($tablaProductos, $itemProd, $valorProd, $orden);
-
-				if(is_array($traerProducto)){
-
-					$stockSucursal = ModeloProductos::mdlObtenerStockSucursal($valorProd, $idSucursalVenta);
-
-					if($stockSucursal){
-						$stockActual = isset($stockSucursal["stock"]) ? (float)$stockSucursal["stock"] : 0;
-						$valor1b = (float)$value["cantidad"] + $stockActual;
-						ModeloProductos::mdlActualizarStockSucursal($valorProd, $idSucursalVenta, $valor1b);
-					}
-
-					$ventasActuales = isset($traerProducto["ventas"]) ? (float)$traerProducto["ventas"] : 0;
-
-					$valor1c = $ventasActuales - (float)$value["cantidad"];
-					if($valor1c < 0){
-						$valor1c = 0;
-					}
-
-					ModeloProductos::mdlActualizarProducto($tablaProductos, "ventas", $valor1c, $valorProd);
-				}
-			}
-		}
-
-		$tablaClientes = "clientes";
-		$valorCliente = $traerVenta["id_cliente"];
-		$traerCliente = ModeloClientes::mdlMostrarClientes($tablaClientes, "id", $valorCliente);
-
-		if(is_array($traerCliente)){
-
-			$comprasActuales = isset($traerCliente["compras"]) ? (float)$traerCliente["compras"] : 0;
-			$valor1a = $comprasActuales - array_sum($totalProductosComprados);
-
-			if($valor1a < 0){
-				$valor1a = 0;
-			}
-
-			ModeloClientes::mdlActualizarCliente($tablaClientes, "compras", $valor1a, $valorCliente);
-		}
-
-		$datos = array(
-			"id" => $valor,
-			"comentario" => $comentario,
-			"estado" => 0
-		);
-
-		$respuesta = ModeloVentas::mdlActualizarVentaDevolucion($tabla, $datos);
-
-		if($respuesta == "ok"){
-
-			$comentarioSeguro = addslashes($comentario);
-
-			echo '<script>
-				swal({
-					type: "success",
-					title: "Devolución procesada correctamente",
-					text: "Motivo: '.$comentarioSeguro.'",
-					showConfirmButton: true,
-					confirmButtonText: "Cerrar"
-				}).then(function(result){
-					if (result.value) {
-						window.location = "ventas";
-					}
-				});
-			</script>';
-		}
-	}
-}
-
-	/*=============================================
-DESCARGAR EXCEL
-=============================================*/
-public function ctrDescargarReporte(){
-
-	if(isset($_GET["reporte"])){
-
-		$ventasFiltradas = self::ctrAuditoriaVentas();
-
-		$Name = $_GET["reporte"].'.xls';
-
-		header('Expires: 0');
-		header('Cache-control: private');
-		header("Content-type: application/vnd.ms-excel");
-		header("Cache-Control: cache, must-revalidate");
-		header('Content-Description: File Transfer');
-		header('Last-Modified: '.date('D, d M Y H:i:s'));
-		header("Pragma: public");
-		header('Content-Disposition:; filename="'.$Name.'"');
-		header("Content-Transfer-Encoding: binary");
-
-		echo "<table border='1'>
-			<tr>
-				<td style='font-weight:bold; border:1px solid #eee;'>SUCURSAL</td>
-				<td style='font-weight:bold; border:1px solid #eee;'>CÓDIGO</td>
-				<td style='font-weight:bold; border:1px solid #eee;'>CLIENTE</td>
-				<td style='font-weight:bold; border:1px solid #eee;'>VENDEDOR</td>
-				<td style='font-weight:bold; border:1px solid #eee;'>PAGO</td>
-				<td style='font-weight:bold; border:1px solid #eee;'>ESTADO</td>
-				<td style='font-weight:bold; border:1px solid #eee;'>NETO</td>
-				<td style='font-weight:bold; border:1px solid #eee;'>TOTAL</td>
-				<td style='font-weight:bold; border:1px solid #eee;'>FECHA</td>
-			</tr>";
-
-		if(is_array($ventasFiltradas)){
-
-			foreach ($ventasFiltradas as $item){
-
-				if(!is_array($item)){
-					continue;
-				}
-
-				$cliente = ControladorClientes::ctrMostrarClientes("id", $item["id_cliente"]);
-				$vendedor = ControladorUsuarios::ctrMostrarUsuarios("id", $item["id_vendedor"]);
-
-				$nombreSucursal = "N/A";
-				if(isset($item["id_sucursal"]) && (int)$item["id_sucursal"] > 0){
-					$stmt = Conexion::conectar()->prepare("SELECT nombre FROM sucursales WHERE id = :id LIMIT 1");
-					$stmt->bindParam(":id", $item["id_sucursal"], PDO::PARAM_INT);
-					$stmt->execute();
-					$suc = $stmt->fetch(PDO::FETCH_ASSOC);
-
-					if($suc && isset($suc["nombre"])){
-						$nombreSucursal = $suc["nombre"];
-					}
-				}
-
-				$estado = ((int)$item["estado"] === 1) ? "Activa" : "Devuelta";
-
-				echo "<tr>
-					<td style='border:1px solid #eee;'>".$nombreSucursal."</td>
-					<td style='border:1px solid #eee;'>".$item["codigo"]."</td>
-					<td style='border:1px solid #eee;'>".(isset($cliente["nombre"]) ? $cliente["nombre"] : "")."</td>
-					<td style='border:1px solid #eee;'>".(isset($vendedor["nombre"]) ? $vendedor["nombre"] : "")."</td>
-					<td style='border:1px solid #eee;'>".$item["metodo_pago"]."</td>
-					<td style='border:1px solid #eee;'>".$estado."</td>
-					<td style='border:1px solid #eee;'>Q ".number_format((float)$item["neto"], 2)."</td>
-					<td style='border:1px solid #eee;'>Q ".number_format((float)$item["total"], 2)."</td>
-					<td style='border:1px solid #eee;'>".$item["fecha"]."</td>
+			echo "<table border='1'>
+				<tr>
+					<td style='font-weight:bold; border:1px solid #eee;'>SUCURSAL</td>
+					<td style='font-weight:bold; border:1px solid #eee;'>CÓDIGO</td>
+					<td style='font-weight:bold; border:1px solid #eee;'>CLIENTE</td>
+					<td style='font-weight:bold; border:1px solid #eee;'>VENDEDOR</td>
+					<td style='font-weight:bold; border:1px solid #eee;'>PAGO</td>
+					<td style='font-weight:bold; border:1px solid #eee;'>ESTADO</td>
+					<td style='font-weight:bold; border:1px solid #eee;'>NETO</td>
+					<td style='font-weight:bold; border:1px solid #eee;'>TOTAL</td>
+					<td style='font-weight:bold; border:1px solid #eee;'>FECHA</td>
 				</tr>";
-			}
-		}
 
-		echo "</table>";
+			if(is_array($ventasFiltradas)){
+
+				foreach ($ventasFiltradas as $item){
+
+					if(!is_array($item)){
+						continue;
+					}
+
+					$cliente = ControladorClientes::ctrMostrarClientes("id", $item["id_cliente"]);
+					$vendedor = ControladorUsuarios::ctrMostrarUsuarios("id", $item["id_vendedor"]);
+
+					$nombreSucursal = "N/A";
+					if(isset($item["id_sucursal"]) && (int)$item["id_sucursal"] > 0){
+						$stmt = Conexion::conectar()->prepare("SELECT nombre FROM sucursales WHERE id = :id LIMIT 1");
+						$stmt->bindParam(":id", $item["id_sucursal"], PDO::PARAM_INT);
+						$stmt->execute();
+						$suc = $stmt->fetch(PDO::FETCH_ASSOC);
+
+						if($suc && isset($suc["nombre"])){
+							$nombreSucursal = $suc["nombre"];
+						}
+					}
+
+					$estado = ((int)$item["estado"] === 1) ? "Activa" : "Devuelta";
+
+					echo "<tr>
+						<td style='border:1px solid #eee;'>".$nombreSucursal."</td>
+						<td style='border:1px solid #eee;'>".$item["codigo"]."</td>
+						<td style='border:1px solid #eee;'>".(isset($cliente["nombre"]) ? $cliente["nombre"] : "")."</td>
+						<td style='border:1px solid #eee;'>".(isset($vendedor["nombre"]) ? $vendedor["nombre"] : "")."</td>
+						<td style='border:1px solid #eee;'>".$item["metodo_pago"]."</td>
+						<td style='border:1px solid #eee;'>".$estado."</td>
+						<td style='border:1px solid #eee;'>Q ".number_format((float)$item["neto"], 2)."</td>
+						<td style='border:1px solid #eee;'>Q ".number_format((float)$item["total"], 2)."</td>
+						<td style='border:1px solid #eee;'>".$item["fecha"]."</td>
+					</tr>";
+				}
+			}
+
+			echo "</table>";
+		}
 	}
-}
+
 	/*=============================================
 	SUMA TOTAL VENTAS
 	=============================================*/
 	static public function ctrSumaTotalVentas(){
 
-  $tabla = "ventas";
-  return ModeloVentas::mdlSumaTotalVentas($tabla);
-}
+		$tabla = "ventas";
+		return ModeloVentas::mdlSumaTotalVentas($tabla);
+	}
 
 	/*=============================================
 	SUMAR ABONOS
@@ -1111,12 +1114,12 @@ public function ctrDescargarReporte(){
 				echo '<script>
 					swal({
 						type: "success",
-						title: "El abono ha sido guardado correctamente",
+						title: "El abono ha sido registrado correctamente",
 						showConfirmButton: true,
 						confirmButtonText: "Cerrar"
 					}).then(function(result){
 						if (result.value) {
-							window.location = "cuentas-cobrar";
+							window.location = "ventas";
 						}
 					});
 				</script>';
@@ -1132,46 +1135,17 @@ public function ctrDescargarReporte(){
 				echo '<script>
 					swal({
 						type: "error",
-						title: "Error al guardar el abono",
+						title: "Error al registrar abono",
 						text: "'.$mensajeError.'",
 						showConfirmButton: true,
 						confirmButtonText: "Cerrar"
 					}).then(function(result){
 						if (result.value) {
-							window.location = "cuentas-cobrar";
+							window.location = "ventas";
 						}
 					});
 				</script>';
 			}
 		}
 	}
-
-	
-	/*=============================================
-AUDITORIA DE VENTAS
-=============================================*/
-static public function ctrAuditoriaVentas(){
-
-    $entrada = array_merge($_GET, $_POST);
-
-    $filtros = array(
-        "id_sucursal" => (isset($entrada["aud_sucursal"]) && $entrada["aud_sucursal"] !== "") ? (int)$entrada["aud_sucursal"] : null,
-        "fecha_inicial" => (isset($entrada["aud_fecha_inicial"]) && $entrada["aud_fecha_inicial"] !== "") ? trim($entrada["aud_fecha_inicial"]) : null,
-        "fecha_final" => (isset($entrada["aud_fecha_final"]) && $entrada["aud_fecha_final"] !== "") ? trim($entrada["aud_fecha_final"]) : null,
-        "estado" => (isset($entrada["aud_estado"]) && $entrada["aud_estado"] !== "") ? (int)$entrada["aud_estado"] : null,
-        "metodo_pago" => (isset($entrada["aud_metodo_pago"]) && $entrada["aud_metodo_pago"] !== "") ? trim($entrada["aud_metodo_pago"]) : null,
-        "estado_pago" => (isset($entrada["aud_estado_pago"]) && $entrada["aud_estado_pago"] !== "") ? trim($entrada["aud_estado_pago"]) : null,
-        "estado_credito" => (isset($entrada["aud_estado_credito"]) && $entrada["aud_estado_credito"] !== "") ? trim($entrada["aud_estado_credito"]) : null,
-        "id_vendedor" => (isset($entrada["aud_vendedor"]) && $entrada["aud_vendedor"] !== "") ? (int)$entrada["aud_vendedor"] : null,
-        "id_cliente" => (isset($entrada["aud_cliente"]) && $entrada["aud_cliente"] !== "") ? (int)$entrada["aud_cliente"] : null,
-        "codigo" => (isset($entrada["aud_codigo"]) && $entrada["aud_codigo"] !== "") ? (int)$entrada["aud_codigo"] : null
-    );
-
-    if(!isset($_SESSION["perfil"]) || $_SESSION["perfil"] != "Administrador"){
-        $filtros["id_sucursal"] = isset($_SESSION["id_sucursal"]) ? (int)$_SESSION["id_sucursal"] : 0;
-    }
-
-    return ModeloVentas::mdlAuditoriaVentas("ventas", $filtros);
-}
-
 }
