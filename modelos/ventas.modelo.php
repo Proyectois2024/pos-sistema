@@ -544,90 +544,84 @@ if($idSucursal > 0){
         $stmt = null;
         return $respuesta;
     }
+/*=============================================
+    AUDITORIA DE VENTAS
+    =============================================*/
+    static public function mdlAuditoriaVentas($tabla, $filtros = array()){
 
-    /*=============================================
-AUDITORIA DE VENTAS
-=============================================*/
-static public function mdlAuditoriaVentas($tabla, $filtros = array()){
+        $conexion = Conexion::conectar();
 
-    $conexion = Conexion::conectar();
+        $sql = "SELECT * FROM $tabla WHERE 1=1";
+        $params = array();
 
-    $sql = "SELECT * FROM $tabla WHERE 1=1";
-    $params = array();
-
-    if(isset($filtros["id_sucursal"]) && $filtros["id_sucursal"] !== null && (int)$filtros["id_sucursal"] > 0){
-        $sql .= " AND id_sucursal = :id_sucursal";
-        $params[":id_sucursal"] = (int)$filtros["id_sucursal"];
-    }
-
-    if(!empty($filtros["fecha_inicial"]) && !empty($filtros["fecha_final"])){
-
-    $sql .= " AND DATE(fecha) BETWEEN :fecha_inicial AND :fecha_final";
-    $params[":fecha_inicial"] = $filtros["fecha_inicial"];
-    $params[":fecha_final"] = $filtros["fecha_final"];
-
-}elseif(!empty($filtros["fecha_inicial"])){
-
-    $sql .= " AND DATE(fecha) >= :fecha_inicial";
-    $params[":fecha_inicial"] = $filtros["fecha_inicial"];
-
-}elseif(!empty($filtros["fecha_final"])){
-
-    $sql .= " AND DATE(fecha) <= :fecha_final";
-    $params[":fecha_final"] = $filtros["fecha_final"];
-}
-
-    if(isset($filtros["estado"]) && $filtros["estado"] !== null){
-        $sql .= " AND estado = :estado";
-        $params[":estado"] = (int)$filtros["estado"];
-    }
-
-    if(isset($filtros["metodo_pago"]) && $filtros["metodo_pago"] !== null){
-        $sql .= " AND metodo_pago = :metodo_pago";
-        $params[":metodo_pago"] = $filtros["metodo_pago"];
-    }
-
-    if(isset($filtros["estado_pago"]) && $filtros["estado_pago"] !== null){
-        $sql .= " AND estado_pago = :estado_pago";
-        $params[":estado_pago"] = $filtros["estado_pago"];
-    }
-
-    if(isset($filtros["estado_credito"]) && $filtros["estado_credito"] !== null){
-        $sql .= " AND estado_credito = :estado_credito";
-        $params[":estado_credito"] = $filtros["estado_credito"];
-    }
-
-    if(isset($filtros["id_vendedor"]) && $filtros["id_vendedor"] !== null && (int)$filtros["id_vendedor"] > 0){
-        $sql .= " AND id_vendedor = :id_vendedor";
-        $params[":id_vendedor"] = (int)$filtros["id_vendedor"];
-    }
-
-    if(isset($filtros["id_cliente"]) && $filtros["id_cliente"] !== null && (int)$filtros["id_cliente"] > 0){
-        $sql .= " AND id_cliente = :id_cliente";
-        $params[":id_cliente"] = (int)$filtros["id_cliente"];
-    }
-
-    if(isset($filtros["codigo"]) && $filtros["codigo"] !== null && (int)$filtros["codigo"] > 0){
-        $sql .= " AND codigo = :codigo";
-        $params[":codigo"] = (int)$filtros["codigo"];
-    }
-
-    $sql .= " ORDER BY id DESC";
-
-    $stmt = $conexion->prepare($sql);
-
-
-    foreach($params as $key => $value){
-        if(is_int($value)){
-            $stmt->bindValue($key, $value, PDO::PARAM_INT);
-        }else{
-            $stmt->bindValue($key, $value, PDO::PARAM_STR);
+        if(isset($filtros["id_sucursal"]) && (int)$filtros["id_sucursal"] > 0){
+            $sql .= " AND id_sucursal = :id_sucursal";
+            $params[":id_sucursal"] = (int)$filtros["id_sucursal"];
         }
+
+        if(!empty($filtros["fecha_inicial"]) && !empty($filtros["fecha_final"])){
+            $sql .= " AND DATE(fecha) BETWEEN :fecha_inicial AND :fecha_final";
+            $params[":fecha_inicial"] = $filtros["fecha_inicial"];
+            $params[":fecha_final"] = $filtros["fecha_final"];
+        }elseif(!empty($filtros["fecha_inicial"])){
+            $sql .= " AND DATE(fecha) >= :fecha_inicial";
+            $params[":fecha_inicial"] = $filtros["fecha_inicial"];
+        }elseif(!empty($filtros["fecha_final"])){
+            $sql .= " AND DATE(fecha) <= :fecha_final";
+            $params[":fecha_final"] = $filtros["fecha_final"];
+        }
+
+        if(isset($filtros["estado"]) && $filtros["estado"] !== "" && $filtros["estado"] !== null){
+            $sql .= " AND estado = :estado";
+            $params[":estado"] = (int)$filtros["estado"];
+        }
+
+        if(!empty($filtros["metodo_pago"])){
+            $sql .= " AND metodo_pago = :metodo_pago";
+            $params[":metodo_pago"] = $filtros["metodo_pago"];
+        }
+
+        if(!empty($filtros["estado_pago"])){
+            $sql .= " AND estado_pago = :estado_pago";
+            $params[":estado_pago"] = $filtros["estado_pago"];
+        }
+
+        if(!empty($filtros["estado_credito"])){
+            $sql .= " AND estado_credito = :estado_credito";
+            $params[":estado_credito"] = $filtros["estado_credito"];
+        }
+
+        if(isset($filtros["id_vendedor"]) && (int)$filtros["id_vendedor"] > 0){
+            $sql .= " AND id_vendedor = :id_vendedor";
+            $params[":id_vendedor"] = (int)$filtros["id_vendedor"];
+        }
+
+        if(isset($filtros["id_cliente"]) && (int)$filtros["id_cliente"] > 0){
+            $sql .= " AND id_cliente = :id_cliente";
+            $params[":id_cliente"] = (int)$filtros["id_cliente"];
+        }
+
+        if(isset($filtros["codigo"]) && (int)$filtros["codigo"] > 0){
+            $sql .= " AND codigo = :codigo";
+            $params[":codigo"] = (int)$filtros["codigo"];
+        }
+
+        $sql .= " ORDER BY id DESC";
+
+        $stmt = $conexion->prepare($sql);
+
+        foreach($params as $key => $value){
+            if(is_int($value)){
+                $stmt->bindValue($key, $value, PDO::PARAM_INT);
+            }else{
+                $stmt->bindValue($key, $value, PDO::PARAM_STR);
+            }
+        }
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    $stmt->execute();
-
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
 
 }
