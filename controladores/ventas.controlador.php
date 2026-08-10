@@ -1150,25 +1150,26 @@ class ControladorVentas{
 			
 		}
 	}
-	/*=============================================
-	AUDITORIA DE VENTAS (FILTRADO COMPLETO)
+/*=============================================
+	AUDITORIA DE VENTAS
 	=============================================*/
 	static public function ctrAuditoriaVentas(){
 
 		$tabla = "ventas";
 
 		$filtros = array(
+			"codigo"        => isset($_GET["aud_codigo"]) ? $_GET["aud_codigo"] : "",
 			"id_sucursal"   => isset($_GET["aud_sucursal"]) ? $_GET["aud_sucursal"] : "",
 			"fecha_inicial" => isset($_GET["aud_fecha_inicial"]) ? $_GET["aud_fecha_inicial"] : "",
 			"fecha_final"   => isset($_GET["aud_fecha_final"]) ? $_GET["aud_fecha_final"] : "",
 			"estado"        => isset($_GET["aud_estado"]) ? $_GET["aud_estado"] : "",
 			"metodo_pago"   => isset($_GET["aud_metodo_pago"]) ? $_GET["aud_metodo_pago"] : "",
+			"estado_pago"   => isset($_GET["aud_estado_pago"]) ? $_GET["aud_estado_pago"] : "",
+			"estado_credito"=> isset($_GET["aud_estado_credito"]) ? $_GET["aud_estado_credito"] : "",
 			"id_vendedor"   => isset($_GET["aud_vendedor"]) ? $_GET["aud_vendedor"] : "",
 			"id_cliente"    => isset($_GET["aud_cliente"]) ? $_GET["aud_cliente"] : ""
 		);
 
-		$respuesta = ModeloVentas::mdlAuditoriaVentas($tabla, $filtros);
-
-		return $respuesta;
+		return ModeloVentas::mdlAuditoriaVentas($tabla, $filtros);
 	}
 }
