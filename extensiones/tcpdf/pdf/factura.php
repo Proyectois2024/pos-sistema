@@ -56,7 +56,7 @@ $respuestaCliente = ControladorClientes::ctrMostrarClientes($itemCliente, $valor
 //TRAEMOS LA INFORMACIÓN DEL VENDEDOR
 
 $itemVendedor = "id";
-$valorVendedor = $respuestaVenta["id_vendedor"];
+$valorVendedor = $respuestaVendedor["id_vendedor"];
 
 $respuestaVendedor = ControladorUsuarios::ctrMostrarUsuarios($itemVendedor, $valorVendedor);
 
@@ -74,19 +74,18 @@ $pdf->startPageGroup();
 $pdf->AddPage();
 
 // ---------------------------------------------------------
-// 🟢 LOGO COMPLETO EN LA PARTE SUPERIOR (OCUPA EL ANCHO DE LA HOJA)
-// X=15 (Márgen izquierdo), Y=10, Ancho=180mm
+// BANNER / LOGO SUPERIOR COMPLETO
 // ---------------------------------------------------------
 $rutaLogo = 'images/logo.png';
 if (file_exists($rutaLogo)) {
-    $pdf->Image($rutaLogo, 15, 8, 180, '', '', '', 'T', false, 300, 'C', false, false, 0, false, false, false);
+    $pdf->Image($rutaLogo, 15, 5, 180, '', '', '', 'T', false, 300, 'C', false, false, 0, false, false, false);
 }
 
-// Dejamos un salto de línea vertical para que el texto empiece abajo del banner del logo
-$pdf->SetY(32);
+// 🟢 Desplazamos el cursor vertical a Y=48 para que el texto comience DEBAJO de la imagen
+$pdf->SetY(48);
 
 // ---------------------------------------------------------
-// DATOS DE LA EMPRESA Y RECIBO ABAJO DEL LOGO
+// DATOS COMPLETOS DEL ENCABEZADO
 // ---------------------------------------------------------
 
 $bloque1 = <<<EOF
@@ -114,7 +113,9 @@ $bloque1 = <<<EOF
 			</td>
 
 			<td style="background-color:white; width:180px; text-align:right; color:red">
-				<b>RECIBO N.</b><br>$valorVenta
+				<div style="font-size:9px; line-height:14px;">
+					<b>RECIBO N.</b><br>$valorVenta
+				</div>
 			</td>
 
 		</tr>
