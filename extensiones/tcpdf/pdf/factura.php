@@ -74,7 +74,16 @@ $pdf->startPageGroup();
 $pdf->AddPage();
 
 // ---------------------------------------------------------
-// ENCABEZADO CON LOGO Y DATOS DE LA EMPRESA (AQUÍ APARECE ARRIBA)
+// DIBUJAMOS EL LOGO EN LA PARTE SUPERIOR IZQUIERDA
+// Posición X=15, Y=10, Ancho=45 (Ajusta la ruta si 'images/logo.png' cambia)
+// ---------------------------------------------------------
+$rutaLogo = 'images/logo.png';
+if (file_exists($rutaLogo)) {
+    $pdf->Image($rutaLogo, 15, 10, 45, '', '', '', 'T', false, 300, '', false, false, 0, false, false, false);
+}
+
+// ---------------------------------------------------------
+// ENCABEZADO CON INFORMACIÓN
 // ---------------------------------------------------------
 
 $bloque1 = <<<EOF
@@ -83,11 +92,10 @@ $bloque1 = <<<EOF
 		
 		<tr>
 			
-			<td style="width:160px; text-align:center;">
-				<img src="images/logo.png" width="150">
-			</td>
+			<!-- Espacio reservado para el logo insertado por $pdf->Image() arriba -->
+			<td style="width:140px"></td>
 
-			<td style="background-color:white; width:135px">
+			<td style="background-color:white; width:140px">
 				
 				<div style="font-size:8.5px; text-align:right; line-height:15px;">
 					
@@ -101,7 +109,7 @@ $bloque1 = <<<EOF
 
 			</td>
 
-			<td style="background-color:white; width:135px">
+			<td style="background-color:white; width:140px">
 
 				<div style="font-size:8.5px; text-align:right; line-height:15px;">
 					
@@ -115,7 +123,7 @@ $bloque1 = <<<EOF
 				
 			</td>
 
-			<td style="background-color:white; width:110px; text-align:center; color:red"><br><br>RECIBO N.<br>$valorVenta</td>
+			<td style="background-color:white; width:120px; text-align:center; color:red"><br><br>RECIBO N.<br>$valorVenta</td>
 
 		</tr>
 
@@ -312,8 +320,7 @@ $pdf->writeHTML($bloque5, false, false, false, false, '');
 // ---------------------------------------------------------
 //SALIDA DEL ARCHIVO 
 
-//$pdf->Output('factura.pdf', 'D');
-	if (ob_get_length()) {
+if (ob_get_length()) {
     ob_end_clean();
 }
 $pdf->Output('factura.pdf');
