@@ -123,8 +123,6 @@ if(isset($_GET["ruta"]) && $_GET["ruta"] == "auditoria-ventas" && isset($_GET["r
   <!-- ChartJS http://www.chartjs.org/-->
   <script src="vistas/bower_components/Chart.js/Chart.js"></script>
 
-
-
 </head>
 
 <!--=====================================
@@ -172,9 +170,10 @@ CUERPO DOCUMENTO
          $_GET["ruta"] == "reportes" ||
          $_GET["ruta"] == "cuentas-cobrar"||
          $_GET["ruta"] == "caja" ||
-         $_GET["ruta"] == "control-sanitario" ||  /* <--- ¡ESTA ES LA LÍNEA NUEVA! */
+         $_GET["ruta"] == "control-sanitario" ||
          $_GET["ruta"] == "cotizaciones" ||
          $_GET["ruta"] == "crear-cotizacion" ||
+         $_GET["ruta"] == "editar-cotizacion" || /* <--- ¡LÍNEA AGREGADA! */
          $_GET["ruta"] == "ver-cotizacion" ||
          $_GET["ruta"] == "imprimir-cotizacion" ||
          $_GET["ruta"] == "transferencias" ||
@@ -211,7 +210,6 @@ CUERPO DOCUMENTO
 
   ?>
 
-
 <script src="vistas/js/plantilla.js"></script>
 <script src="vistas/js/usuarios.js"></script>
 <script src="vistas/js/categorias.js"></script>
@@ -222,7 +220,6 @@ CUERPO DOCUMENTO
 <script src="vistas/js/reportes.js"></script>
 <script src="vistas/js/sucursales.js"></script>
 <script src="vistas/js/proveedores.js"></script>
-
 
 </body>
 </html>
