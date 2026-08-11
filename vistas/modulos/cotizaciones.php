@@ -164,3 +164,7 @@
   </section>
 
 </div>
+<?php
+  $eliminarCotizacion = new ControladorCotizaciones();
+  $eliminarCotizacion->ctrEliminarCotizacion();
+?>
