@@ -74,16 +74,19 @@ $pdf->startPageGroup();
 $pdf->AddPage();
 
 // ---------------------------------------------------------
-// DIBUJAMOS EL LOGO EN LA PARTE SUPERIOR IZQUIERDA
-// Posición X=15, Y=10, Ancho=45 (Ajusta la ruta si 'images/logo.png' cambia)
+// 🟢 LOGO COMPLETO EN LA PARTE SUPERIOR (OCUPA EL ANCHO DE LA HOJA)
+// X=15 (Márgen izquierdo), Y=10, Ancho=180mm
 // ---------------------------------------------------------
 $rutaLogo = 'images/logo.png';
 if (file_exists($rutaLogo)) {
-    $pdf->Image($rutaLogo, 15, 10, 45, '', '', '', 'T', false, 300, '', false, false, 0, false, false, false);
+    $pdf->Image($rutaLogo, 15, 8, 180, '', '', '', 'T', false, 300, 'C', false, false, 0, false, false, false);
 }
 
+// Dejamos un salto de línea vertical para que el texto empiece abajo del banner del logo
+$pdf->SetY(32);
+
 // ---------------------------------------------------------
-// ENCABEZADO CON INFORMACIÓN
+// DATOS DE LA EMPRESA Y RECIBO ABAJO DEL LOGO
 // ---------------------------------------------------------
 
 $bloque1 = <<<EOF
@@ -91,39 +94,28 @@ $bloque1 = <<<EOF
 	<table>
 		
 		<tr>
-			
-			<!-- Espacio reservado para el logo insertado por $pdf->Image() arriba -->
-			<td style="width:140px"></td>
 
-			<td style="background-color:white; width:140px">
+			<td style="background-color:white; width:180px">
 				
-				<div style="font-size:8.5px; text-align:right; line-height:15px;">
-					
-					<br>
-					NIT: ----
-
-					<br>
+				<div style="font-size:8.5px; text-align:left; line-height:15px;">
+					NIT: ----<br>
 					Dirección: Barrio el Centro Dolores
-
 				</div>
 
 			</td>
 
-			<td style="background-color:white; width:140px">
+			<td style="background-color:white; width:180px">
 
-				<div style="font-size:8.5px; text-align:right; line-height:15px;">
-					
-					<br>
-					Teléfono: ----
-					
-					<br>
+				<div style="font-size:8.5px; text-align:center; line-height:15px;">
+					Teléfono: ----<br>
 					-----
-
 				</div>
 				
 			</td>
 
-			<td style="background-color:white; width:120px; text-align:center; color:red"><br><br>RECIBO N.<br>$valorVenta</td>
+			<td style="background-color:white; width:180px; text-align:right; color:red">
+				<b>RECIBO N.</b><br>$valorVenta
+			</td>
 
 		</tr>
 
@@ -314,8 +306,6 @@ $bloque5 = <<<EOF
 EOF;
 
 $pdf->writeHTML($bloque5, false, false, false, false, '');
-
-
 
 // ---------------------------------------------------------
 //SALIDA DEL ARCHIVO 
