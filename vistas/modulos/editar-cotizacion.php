@@ -11,58 +11,81 @@
           <form role="form" method="post" id="formularioEditarCotizacion" class="formularioCotizacion">
             <div class="box-body">
 
-              <?php
-                if(!isset($_GET["idCotizacion"])){
-                    echo '<script>window.location = "cotizaciones";</script>';
-                    exit();
-                }
+             <?php
+  if(!isset($_GET["idCotizacion"])){
+      echo '<script>window.location = "cotizaciones";</script>';
+      exit();
+  }
 
-                $item = "id";
-                $valor = $_GET["idCotizacion"];
-                $doc = ControladorCotizaciones::ctrMostrarCotizaciones($item, $valor);
+  $item = "id";
+  $valor = $_GET["idCotizacion"];
+  
+  // 🟢 CORREGIDO: Método en singular
+  $doc = ControladorCotizaciones::ctrMostrarCotizacion($item, $valor);
 
-                $clientes = ControladorClientes::ctrMostrarClientes(null, null);
-                $productos = json_decode($doc["productos"], true);
-              ?>
+  if(!$doc){
+      echo '<script>window.location = "cotizaciones";</script>';
+      exit();
+  }
 
-              <!-- Guardamos el ID del documento -->
-              <input type="hidden" name="idCotizacion" value="<?php echo $doc["id"]; ?>">
+  // 🟢 Obtenemos el detalle de productos desde la base de datos
+  $detalles = ControladorCotizaciones::ctrMostrarDetalleCotizacion($doc["id"]);
 
-              <div class="row">
-                <div class="col-md-3">
-                  <div class="form-group">
-                    <label>Código</label>
-                    <input type="text" class="form-control" name="codigo" value="<?php echo $doc["codigo_docto"]; ?>" readonly>
-                  </div>
-                </div>
+  $clientes = ControladorClientes::ctrMostrarClientes(null, null);
 
-                <div class="col-md-3">
-                  <div class="form-group">
-                    <label>Tipo de documento</label>
-                    <select class="form-control" name="tipo_docto" required>
-                      <option value="COTIZACION" <?php echo ($doc["tipo"] == "COTIZACION") ? "selected" : ""; ?>>Cotización</option>
-                      <option value="PEDIDO" <?php echo ($doc["tipo"] == "PEDIDO") ? "selected" : ""; ?>>Pedido</option>
-                    </select>
-                  </div>
-                </div>
+  // Mapeamos los detalles al formato JSON que consume el JavaScript
+  $productosJson = array();
+  if(is_array($detalles)){
+      foreach($detalles as $det){
+          $productosJson[] = array(
+              "id_producto" => $det["id_producto"],
+              "descripcion" => $det["descripcion_item"],
+              "cantidad"    => $det["cantidad"],
+              "unidad"      => $det["unidad_medida"],
+              "precio"      => $det["precio_unitario"],
+              "subtotal"    => $det["subtotal"]
+          );
+      }
+  }
+?>
 
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label>Cliente</label>
-                    <select class="form-control" name="id_cliente" required>
-                      <option value="">Seleccionar cliente</option>
-                      <?php if(is_array($clientes)): ?>
-                        <?php foreach($clientes as $cliente): ?>
-                          <option value="<?php echo $cliente["id"]; ?>" <?php echo ($cliente["id"] == $doc["id_cliente"]) ? "selected" : ""; ?>>
-                            <?php echo $cliente["nombre"]; ?>
-                          </option>
-                        <?php endforeach; ?>
-                      <?php endif; ?>
-                    </select>
-                  </div>
-                </div>
-              </div>
+<!-- Guardamos el ID del documento -->
+<input type="hidden" name="idCotizacion" value="<?php echo $doc["id"]; ?>">
 
+<div class="row">
+  <div class="col-md-3">
+    <div class="form-group">
+      <label>Código</label>
+      <input type="text" class="form-control" name="codigo" value="<?php echo $doc["codigo_docto"]; ?>" readonly>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="form-group">
+      <label>Tipo de documento</label>
+      <select class="form-control" name="tipo_docto" required>
+        <option value="COTIZACION" <?php echo ($doc["tipo"] == "COTIZACION") ? "selected" : ""; ?>>Cotización</option>
+        <option value="PEDIDO" <?php echo ($doc["tipo"] == "PEDIDO") ? "selected" : ""; ?>>Pedido</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="form-group">
+      <label>Cliente</label>
+      <select class="form-control" name="id_cliente" required>
+        <option value="">Seleccionar cliente</option>
+        <?php if(is_array($clientes)): ?>
+          <?php foreach($clientes as $cliente): ?>
+            <option value="<?php echo $cliente["id"]; ?>" <?php echo ($cliente["id"] == $doc["id_cliente"]) ? "selected" : ""; ?>>
+              <?php echo $cliente["nombre"]; ?>
+            </option>
+          <?php endforeach; ?>
+        <?php endif; ?>
+      </select>
+    </div>
+  </div>
+</div>
               <hr>
 
               <div class="row">
