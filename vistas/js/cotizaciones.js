@@ -138,3 +138,29 @@ $(document).on("click", ".btnQuitarProductoCotizacion", function(){
     recalcularTotalCotizacion();
     listarProductosCotizacion();
 });
+
+/*=============================================
+ELIMINAR COTIZACION / PEDIDO
+=============================================*/
+$(document).on("click", ".btnEliminarCotizacion", function(){
+
+  var idCotizacion = $(this).attr("idCotizacion");
+
+  swal({
+    title: '¿Está seguro de borrar el documento?',
+    text: "¡Si no lo está puede cancelar la acción!",
+    type: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    cancelButtonText: 'Cancelar',
+    confirmButtonText: 'Sí, borrar!'
+  }).then(function(result){
+
+    if(result.value){
+      window.location = "index.php?ruta=cotizaciones&idCotizacion=" + idCotizacion;
+    }
+
+  });
+
+});
