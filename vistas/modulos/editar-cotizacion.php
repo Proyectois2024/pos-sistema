@@ -11,81 +11,82 @@
           <form role="form" method="post" id="formularioEditarCotizacion" class="formularioCotizacion">
             <div class="box-body">
 
-             <?php
-  if(!isset($_GET["idCotizacion"])){
-      echo '<script>window.location = "cotizaciones";</script>';
-      exit();
-  }
+              <?php
+                if(!isset($_GET["idCotizacion"])){
+                    echo '<script>window.location = "cotizaciones";</script>';
+                    exit();
+                }
 
-  $item = "id";
-  $valor = $_GET["idCotizacion"];
-  
-  // 🟢 CORREGIDO: Método en singular
-  $doc = ControladorCotizaciones::ctrMostrarCotizacion($item, $valor);
+                $item = "id";
+                $valor = $_GET["idCotizacion"];
+                
+                // Método en singular para consultar el cabezal
+                $doc = ControladorCotizaciones::ctrMostrarCotizacion($item, $valor);
 
-  if(!$doc){
-      echo '<script>window.location = "cotizaciones";</script>';
-      exit();
-  }
+                if(!$doc){
+                    echo '<script>window.location = "cotizaciones";</script>';
+                    exit();
+                }
 
-  // 🟢 Obtenemos el detalle de productos desde la base de datos
-  $detalles = ControladorCotizaciones::ctrMostrarDetalleCotizacion($doc["id"]);
+                // Obtenemos el detalle de productos desde la base de datos
+                $detalles = ControladorCotizaciones::ctrMostrarDetalleCotizacion($doc["id"]);
 
-  $clientes = ControladorClientes::ctrMostrarClientes(null, null);
+                $clientes = ControladorClientes::ctrMostrarClientes(null, null);
 
-  // Mapeamos los detalles al formato JSON que consume el JavaScript
-  $productosJson = array();
-  if(is_array($detalles)){
-      foreach($detalles as $det){
-          $productosJson[] = array(
-              "id_producto" => $det["id_producto"],
-              "descripcion" => $det["descripcion_item"],
-              "cantidad"    => $det["cantidad"],
-              "unidad"      => $det["unidad_medida"],
-              "precio"      => $det["precio_unitario"],
-              "subtotal"    => $det["subtotal"]
-          );
-      }
-  }
-?>
+                // Mapeamos los detalles al formato que lee JavaScript
+                $productosJson = array();
+                if(is_array($detalles)){
+                    foreach($detalles as $det){
+                        $productosJson[] = array(
+                            "id_producto" => $det["id_producto"],
+                            "descripcion" => $det["descripcion_item"],
+                            "cantidad"    => $det["cantidad"],
+                            "unidad"      => $det["unidad_medida"],
+                            "precio"      => $det["precio_unitario"],
+                            "subtotal"    => $det["subtotal"]
+                        );
+                    }
+                }
+              ?>
 
-<!-- Guardamos el ID del documento -->
-<input type="hidden" name="idCotizacion" value="<?php echo $doc["id"]; ?>">
+              <!-- Guardamos el ID del documento -->
+              <input type="hidden" name="idCotizacion" value="<?php echo $doc["id"]; ?>">
 
-<div class="row">
-  <div class="col-md-3">
-    <div class="form-group">
-      <label>Código</label>
-      <input type="text" class="form-control" name="codigo" value="<?php echo $doc["codigo_docto"]; ?>" readonly>
-    </div>
-  </div>
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label>Código</label>
+                    <input type="text" class="form-control" name="codigo" value="<?php echo $doc["codigo_docto"]; ?>" readonly>
+                  </div>
+                </div>
 
-  <div class="col-md-3">
-    <div class="form-group">
-      <label>Tipo de documento</label>
-      <select class="form-control" name="tipo_docto" required>
-        <option value="COTIZACION" <?php echo ($doc["tipo"] == "COTIZACION") ? "selected" : ""; ?>>Cotización</option>
-        <option value="PEDIDO" <?php echo ($doc["tipo"] == "PEDIDO") ? "selected" : ""; ?>>Pedido</option>
-      </select>
-    </div>
-  </div>
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label>Tipo de documento</label>
+                    <select class="form-control" name="tipo_docto" required>
+                      <option value="COTIZACION" <?php echo ($doc["tipo"] == "COTIZACION") ? "selected" : ""; ?>>Cotización</option>
+                      <option value="PEDIDO" <?php echo ($doc["tipo"] == "PEDIDO") ? "selected" : ""; ?>>Pedido</option>
+                    </select>
+                  </div>
+                </div>
 
-  <div class="col-md-6">
-    <div class="form-group">
-      <label>Cliente</label>
-      <select class="form-control" name="id_cliente" required>
-        <option value="">Seleccionar cliente</option>
-        <?php if(is_array($clientes)): ?>
-          <?php foreach($clientes as $cliente): ?>
-            <option value="<?php echo $cliente["id"]; ?>" <?php echo ($cliente["id"] == $doc["id_cliente"]) ? "selected" : ""; ?>>
-              <?php echo $cliente["nombre"]; ?>
-            </option>
-          <?php endforeach; ?>
-        <?php endif; ?>
-      </select>
-    </div>
-  </div>
-</div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Cliente</label>
+                    <select class="form-control" name="id_cliente" required>
+                      <option value="">Seleccionar cliente</option>
+                      <?php if(is_array($clientes)): ?>
+                        <?php foreach($clientes as $cliente): ?>
+                          <option value="<?php echo $cliente["id"]; ?>" <?php echo ($cliente["id"] == $doc["id_cliente"]) ? "selected" : ""; ?>>
+                            <?php echo $cliente["nombre"]; ?>
+                          </option>
+                        <?php endforeach; ?>
+                      <?php endif; ?>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               <hr>
 
               <div class="row">
@@ -127,14 +128,14 @@
                   </tr>
                 </thead>
                 <tbody class="listaProductosCotizacion">
-                  <?php if(is_array($productos)): ?>
-                    <?php foreach($productos as $prod): ?>
-                      <tr class="filaProductoCotizacion" idProducto="<?php echo $prod["id_producto"]; ?>">
-                        <td><input type="text" class="form-control descripcionCotizacion" name="descripcion[]" value="<?php echo $prod["descripcion"]; ?>" readonly required></td>
-                        <td><input type="number" class="form-control cantidadCotizacion" name="cantidad[]" value="<?php echo $prod["cantidad"]; ?>" min="1" step="any" required></td>
-                        <td><input type="text" class="form-control unidadCotizacion" name="unidad[]" value="<?php echo isset($prod["unidad"]) ? $prod["unidad"] : ""; ?>" placeholder="Ej: Unidad"></td>
-                        <td><input type="number" class="form-control precioCotizacion" name="precio[]" value="<?php echo number_format((float)$prod["precio"], 2, '.', ''); ?>" min="0" step="any" required></td>
-                        <td><input type="number" class="form-control subtotalCotizacion" name="subtotal[]" value="<?php echo number_format((float)$prod["subtotal"], 2, '.', ''); ?>" readonly></td>
+                  <?php if(is_array($detalles)): ?>
+                    <?php foreach($detalles as $det): ?>
+                      <tr class="filaProductoCotizacion" idProducto="<?php echo $det["id_producto"]; ?>">
+                        <td><input type="text" class="form-control descripcionCotizacion" name="descripcion[]" value="<?php echo $det["descripcion_item"]; ?>" readonly required></td>
+                        <td><input type="number" class="form-control cantidadCotizacion" name="cantidad[]" value="<?php echo $det["cantidad"]; ?>" min="1" step="any" required></td>
+                        <td><input type="text" class="form-control unidadCotizacion" name="unidad[]" value="<?php echo $det["unidad_medida"]; ?>" placeholder="Ej: Unidad"></td>
+                        <td><input type="number" class="form-control precioCotizacion" name="precio[]" value="<?php echo number_format((float)$det["precio_unitario"], 2, '.', ''); ?>" min="0" step="any" required></td>
+                        <td><input type="number" class="form-control subtotalCotizacion" name="subtotal[]" value="<?php echo number_format((float)$det["subtotal"], 2, '.', ''); ?>" readonly></td>
                         <td><button type="button" class="btn btn-danger btnQuitarProductoCotizacion"><i class="fa fa-times"></i></button></td>
                       </tr>
                     <?php endforeach; ?>
@@ -142,7 +143,8 @@
                 </tbody>
               </table>
 
-              <input type="hidden" name="productosJsonCotizacion" id="productosJsonCotizacion" value='<?php echo $doc["productos"]; ?>'>
+              <!-- Se envía la lista de productos serializada en JSON -->
+              <input type="hidden" name="productosJsonCotizacion" id="productosJsonCotizacion" value='<?php echo json_encode($productosJson); ?>'>
 
               <div class="row">
                 <div class="col-md-4 col-md-offset-8">
