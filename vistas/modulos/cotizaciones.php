@@ -91,50 +91,60 @@
                 </td>
 
                 <td>
-                  <div class="btn-group">
-                    <a href="index.php?ruta=ver-cotizacion&idDocto=<?php echo $doc["id"]; ?>" class="btn btn-info btn-sm">
-                      <i class="fa fa-eye"></i>
-                    </a>
+                <div class="btn-group">
+  <a href="index.php?ruta=ver-cotizacion&idDocto=<?php echo $doc["id"]; ?>" class="btn btn-info btn-sm" title="Ver">
+    <i class="fa fa-eye"></i>
+  </a>
 
-                    <?php if((int)$doc["estado"] === 1): ?>
-                      <a href="index.php?ruta=crear-venta&idCotizacion=<?php echo $doc["id"]; ?>" class="btn btn-success btn-sm">
-                        <i class="fa fa-exchange"></i>
-                      </a>
-                    <?php else: ?>
-                      <button type="button" class="btn btn-default btn-sm" disabled title="Ya convertida en venta">
-                        <i class="fa fa-check"></i>
-                      </button>
-                    <?php endif; ?>
+  <?php if((int)$doc["estado"] === 1): ?>
+    <a href="index.php?ruta=crear-venta&idCotizacion=<?php echo $doc["id"]; ?>" class="btn btn-success btn-sm" title="Convertir a Venta">
+      <i class="fa fa-exchange"></i>
+    </a>
+  <?php else: ?>
+    <button type="button" class="btn btn-default btn-sm" disabled title="Ya convertida en venta">
+      <i class="fa fa-check"></i>
+    </button>
+  <?php endif; ?>
 
-                    <?php
-                      if($doc["tipo"] == "COTIZACION"){
-                        $rutaPdf = "extensiones/tcpdf/pdf/cotizacion.php?idDocto=".$doc["id"];
-                        $rutaWord = "extensiones/word/cotizacion.php?idDocto=".$doc["id"];
-                      }else{
-                        $rutaPdf = "extensiones/tcpdf/pdf/pedido.php?idDocto=".$doc["id"];
-                        $rutaWord = "extensiones/word/pedido.php?idDocto=".$doc["id"];
-                      }
-                    ?>
+  <!-- 🟡 NUEVO: Botón Editar -->
+  <a href="index.php?ruta=editar-cotizacion&idCotizacion=<?php echo $doc["id"]; ?>" class="btn btn-warning btn-sm" title="Editar">
+    <i class="fa fa-pencil"></i>
+  </a>
 
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="Exportar">
-                        <i class="fa fa-print"></i> <span class="caret"></span>
-                      </button>
-                      <ul class="dropdown-menu dropdown-menu-right">
-                        <li>
-                          <a href="<?php echo $rutaPdf; ?>" target="_blank">
-                            <i class="fa fa-file-pdf-o text-danger"></i> Exportar PDF
-                          </a>
-                        </li>
-                        <li>
-                          <a href="<?php echo $rutaWord; ?>" target="_blank">
-                            <i class="fa fa-file-word-o text-primary"></i> Exportar Word
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
+  <!-- 🔴 NUEVO: Botón Eliminar -->
+  <button type="button" class="btn btn-danger btn-sm btnEliminarCotizacion" idCotizacion="<?php echo $doc["id"]; ?>" title="Eliminar">
+    <i class="fa fa-trash"></i>
+  </button>
 
-                  </div>
+  <?php
+    if($doc["tipo"] == "COTIZACION"){
+      $rutaPdf = "extensiones/tcpdf/pdf/cotizacion.php?idDocto=".$doc["id"];
+      $rutaWord = "extensiones/word/cotizacion.php?idDocto=".$doc["id"];
+    }else{
+      $rutaPdf = "extensiones/tcpdf/pdf/pedido.php?idDocto=".$doc["id"];
+      $rutaWord = "extensiones/word/pedido.php?idDocto=".$doc["id"];
+    }
+  ?>
+
+  <div class="btn-group">
+    <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="Exportar">
+      <i class="fa fa-print"></i> <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-right">
+      <li>
+        <a href="<?php echo $rutaPdf; ?>" target="_blank">
+          <i class="fa fa-file-pdf-o text-danger"></i> Exportar PDF
+        </a>
+      </li>
+      <li>
+        <a href="<?php echo $rutaWord; ?>" target="_blank">
+          <i class="fa fa-file-word-o text-primary"></i> Exportar Word
+        </a>
+      </li>
+    </ul>
+  </div>
+
+</div>
                 </td>
               </tr>
 
