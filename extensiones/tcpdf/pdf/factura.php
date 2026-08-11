@@ -73,17 +73,9 @@ $pdf->startPageGroup();
 
 $pdf->AddPage();
 
-// Configurar imagen como marca de agua (logo)
-$auto_page_break = $pdf->getAutoPageBreak();
-$bMargin = $pdf->getBreakMargin();
-$pdf->SetAutoPageBreak(false, 0);
-
-// Ruta al logo (ajústala si está en otra carpeta)
-$pdf->Image('images/logo.png', 30, 110, 150, '', '', '', '', false, 300, '', false, false, 0);
-
-// Restaurar saltos automáticos de página
-$pdf->SetAutoPageBreak($auto_page_break, $bMargin);
-$pdf->SetPageMark();
+// ---------------------------------------------------------
+// ENCABEZADO CON LOGO Y DATOS DE LA EMPRESA (AQUÍ APARECE ARRIBA)
+// ---------------------------------------------------------
 
 $bloque1 = <<<EOF
 
@@ -91,9 +83,11 @@ $bloque1 = <<<EOF
 		
 		<tr>
 			
-			<td style="width:150px"><img src="images/logo.png" height="60"></td>
+			<td style="width:160px; text-align:center;">
+				<img src="images/logo.png" width="150">
+			</td>
 
-			<td style="background-color:white; width:140px">
+			<td style="background-color:white; width:135px">
 				
 				<div style="font-size:8.5px; text-align:right; line-height:15px;">
 					
@@ -107,7 +101,7 @@ $bloque1 = <<<EOF
 
 			</td>
 
-			<td style="background-color:white; width:140px">
+			<td style="background-color:white; width:135px">
 
 				<div style="font-size:8.5px; text-align:right; line-height:15px;">
 					
